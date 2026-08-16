@@ -91,18 +91,15 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
 
 .grille{display:grid;gap:14px;grid-template-columns:repeat(var(--cols,5),1fr)}
 
-/* ---------- agencement Bento ---------- */
-.grille.bento{grid-template-columns:repeat(6,1fr);grid-auto-rows:74px;grid-auto-flow:dense;gap:14px}
-.grille.bento .chip-wrap{height:100%;grid-row:span 2}
+/* ---------- agencement Bento ----------
+   Pavage calculé en JS : découpes aléatoires, aucun trou.
+   Colonnes, lignes et position de chaque bloc sont posées en style inline. */
+.grille.bento{grid-auto-rows:74px;gap:14px}
+.grille.bento .chip-wrap{height:100%}
 .grille.bento .chip-wrap .chip{height:100%;display:flex;flex-direction:column}
 .grille.bento .chip-wrap .aplat{flex:1;height:auto;min-height:0}
 .grille.bento .chip-wrap .nom{margin-top:8px}
-.grille.bento .chip-wrap:nth-child(11n+1){grid-column:span 2;grid-row:span 3}
-.grille.bento .chip-wrap:nth-child(11n+6){grid-row:span 3}
-.grille.bento .chip-wrap:nth-child(11n+9){grid-column:span 2;grid-row:span 2}
-@media (max-width:1180px){.grille.bento{grid-template-columns:repeat(4,1fr)}}
-@media (max-width:700px){.grille.bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:64px}
-  .grille.bento .chip-wrap:nth-child(11n+1),.grille.bento .chip-wrap:nth-child(11n+9){grid-column:span 2}}
+@media (max-width:700px){.grille.bento{grid-auto-rows:64px}}
 
 /* ---------- pastille de couleur (signature) ---------- */
 .chip{display:block;text-align:left;width:100%}
@@ -304,12 +301,21 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
     </div>
     <div class="filtres" role="group" aria-label="Filtres avancés">
       <span class="agencement-label">Filtres</span>
-      <select id="filtre-famille" aria-label="Filtrer par famille"><option value="">Toutes les familles</option></select>
-      <label class="filtre-check"><input type="checkbox" id="filtre-gamut"> Hors gamut CMJN uniquement</label>
+      <select id="filtre-rendu" aria-label="Filtrer par rendu à l'impression">
+        <option value="">Tous les rendus</option>
+        <option value="ok">Fidèle en quadri</option>
+        <option value="warn">Écart à l'impression</option>
+        <option value="bad">Hors gamut CMJN</option>
+      </select>
       <div class="filtre-lum">
-        <div class="filtre-lum-lg"><span>Luminosité OKLCH</span><span id="filtre-lum-val">0–100 %</span></div>
+        <div class="filtre-lum-lg"><span>Luminosité</span><span id="filtre-lum-val">0–100 %</span></div>
         <input type="range" id="filtre-lmin" min="0" max="100" value="0" step="1" aria-label="Luminosité minimum">
         <input type="range" id="filtre-lmax" min="0" max="100" value="100" step="1" aria-label="Luminosité maximum">
+      </div>
+      <div class="filtre-lum">
+        <div class="filtre-lum-lg"><span>Saturation</span><span id="filtre-sat-val">0–100 %</span></div>
+        <input type="range" id="filtre-cmin" min="0" max="100" value="0" step="1" aria-label="Saturation minimum">
+        <input type="range" id="filtre-cmax" min="0" max="100" value="100" step="1" aria-label="Saturation maximum">
       </div>
       <button type="button" id="filtre-reset" class="filtre-reset">Réinitialiser les filtres</button>
     </div>
@@ -495,7 +501,13 @@ const BIBLIO=[
  ['Rouge Fumé','#7D4A47',"Neutre chaud, boiseries, texte secondaire."],
  ['Rouge Sumac','#A32638',"Épices, food éditorial, chaleur discrète."],
  ['Rouge Vintage','#C1443B',"Affiche rétro, sérigraphie, patine."],
- ['Grenadine','#ED5265',"Boisson, packaging pop, été."]]},
+ ['Grenadine','#ED5265',"Boisson, packaging pop, été."],
+ ['Cherry Red','#D2042D',"Le rouge cerise viral : manucure, mode, réseaux."],
+ ['Tomato Girl','#D9432F',"Été méditerranéen, marché, food éditorial."],
+ ['Cherry Cola','#7A1420',"Soda, nightlife, packaging rétro sombre."],
+ ['Red Wine','#6E1A2E',"Œnologie, soirée, textile hiver."],
+ ['Bordeaux Cuir','#4E1220',"Maroquinerie, reliure, luxe sombre."],
+ ['Scarlet Pop','#F02D3A',"Écarlate saturé, sport, affiche."]]},
 
 {cle:'orange',nom:'Oranges',repere:'#FF5F1F',intro:"Énergie sans la violence du rouge. Le ton le plus difficile à imprimer fidèlement.",
  nuances:[
@@ -513,7 +525,12 @@ const BIBLIO=[
  ['Orange Néon','#FF5F1F',"Signalétique, sécurité, streetwear."],
  ['Orange Brûlé','#D2601C',"Automne, feuillage, chaleur mate."],
  ['Clémentine','#FF7F3F',"Agrume vif, énergie, jeunesse."],
- ['Orange Argile','#B9663D',"Céramique, terre cuite claire."]]},
+ ['Orange Argile','#B9663D',"Céramique, terre cuite claire."],
+ ['Peach Fuzz','#FFBE98',"Pantone 2024 : douceur, peau, beauté."],
+ ['Dopamine Orange','#FF7A00',"Design dopaminergique, énergie franche."],
+ ['Tangerine Dream','#FF9F45',"Rétro seventies, musique, affiche."],
+ ['Spicy Marmalade','#E86A17',"Condiment, épicerie, packaging chaud."],
+ ['Apricot Crush','#F79256',"Abricot moderne, cosmétique, fond doux."]]},
 
 {cle:'jaune',nom:'Jaunes',repere:'#E9C11A',intro:"La couleur la plus lumineuse du cercle, et la plus traître : illisible sur blanc.",
  nuances:[
@@ -531,7 +548,11 @@ const BIBLIO=[
  ['Jaune Soufre','#F5D400',"Signal, avertissement, contraste fort."],
  ['Jaune Beurre Doux','#EBD48A',"Fond pâtissier, douceur, papeterie."],
  ['Jaune Canari','#FFD23F',"Signal joyeux, packaging enfant."],
- ['Chartreuse','#C6D42B',"Charnière jaune-vert, très actuel."]]},
+ ['Chartreuse','#C6D42B',"Charnière jaune-vert, très actuel."],
+ ['Butter Yellow','#EFDF9B',"Le jaune beurre de 2025 : pastel chic, mode."],
+ ['Golden Hour','#F2B035',"Photographie, lumière rasante, chaleur."],
+ ['Lemon Drop','#FFF056',"Acidulé, confiserie, pop assumé."],
+ ['Dijon','#B99029',"Condiment, mode automne, rendu mat."]]},
 
 {cle:'vert',nom:'Verts',repere:'#0F8A5F',intro:"Le repos de l'œil. Attention : le vert perd beaucoup en quadri dès qu'il se sature.",
  nuances:[
@@ -549,7 +570,14 @@ const BIBLIO=[
  ['Vert Bouteille','#14532D',"Vin, héritage, papeterie haut de gamme."],
  ['Vert Basilic','#4F7A3D',"Cuisine, fraîcheur, nature."],
  ['Céladon Foncé','#5E8C72',"Céramique, apaisement, intemporel."],
- ['Vert Cyber','#39FF6A',"Gaming, tech, alerte positive."]]},
+ ['Vert Cyber','#39FF6A',"Gaming, tech, alerte positive."],
+ ['Brat Green','#8ACE00',"Le vert viral 2024 : club culture, provocation."],
+ ['Matcha Latte','#BFCF9C',"Café de spécialité, wellness, doux."],
+ ['Sage Wash','#C3CDBC',"Sauge délavée, intérieur, calme."],
+ ['Deep Jungle','#0D3B2E',"Fond sombre végétal, luxe tropical."],
+ ['Pickle Green','#5A7302',"Condiment, streetwear, vintage."],
+ ['Seafoam','#9FE2BF',"Balnéaire, fraîcheur, interfaces douces."],
+ ['Moss Core','#6C7B3C',"Mousse, forestcore, textile naturel."]]},
 
 {cle:'turquoise',nom:'Turquoises & cyans',repere:'#2EC4B6',intro:"Entre eau et écran. La famille la plus fragile en impression.",
  nuances:[
@@ -567,7 +595,11 @@ const BIBLIO=[
  ['Sarcelle Vintage','#3E7C7B',"Rétro, mobilier, affiche."],
  ['Bleu Paon','#036666',"Luxe, plumage, profondeur."],
  ['Turquoise Poussière','#7FB9AE',"Doux, spa, intemporel."],
- ['Cyan Glacé','#B8ECEC',"Fond très clair, fraîcheur."]]},
+ ['Cyan Glacé','#B8ECEC',"Fond très clair, fraîcheur."],
+ ['Tiffany','#0ABAB5',"Bijouterie, référence intemporelle."],
+ ['Blue Curaçao','#00B3D6',"Cocktail, été, signalétique loisirs."],
+ ['Spa Water','#D6EFEA',"Fond très clair, bien-être, soin."],
+ ['Deep Ocean','#07393C',"Fond sombre marin, éditorial."]]},
 
 {cle:'bleu',nom:'Bleus',repere:'#0047FF',intro:"La couleur préférée du monde, donc la plus banale. Le choix se joue dans la nuance.",
  nuances:[
@@ -585,7 +617,13 @@ const BIBLIO=[
  ['Bleu Givré','#DCE8F5',"Presque blanc, séparateurs, cartes."],
  ['Bleu Pétrole','#1B4B5A',"Sérieux, technique, profondeur."],
  ['Bleu Horizon','#6FA8DC',"Ciel, voyage, respiration."],
- ['Bleu Roi','#1338BE',"Sport, drapeau, énergie institutionnelle."]]},
+ ['Bleu Roi','#1338BE',"Sport, drapeau, énergie institutionnelle."],
+ ['Blue Nova','#2447D9',"Bleu numérique profond, tech, fintech."],
+ ['Denim Washed','#7F9DC0',"Jean délavé, casual, douceur."],
+ ['Stone Blue','#6B8CA3',"Neutre bleuté minéral, architecture."],
+ ['Arctic Blue','#8FB8D9',"Hiver, aération, illustration."],
+ ['Ink Blue','#243A63',"Encre, édition, sérieux moderne."],
+ ['Cerulean Pop','#0F9BD7',"Céruléen vif, sport nautique, signalétique."]]},
 
 {cle:'violet',nom:'Violets',repere:'#8A5FBF',intro:"Créatif et un peu risqué. Vire facilement au bleu à l'impression.",
  nuances:[
@@ -603,7 +641,12 @@ const BIBLIO=[
  ['Violet Cendré','#6E6379',"Gris violacé, texte secondaire chic."],
  ['Violet Cassis','#4B2E5C',"Fruit, gourmandise, nuit douce."],
  ['Orchidée','#B564C4',"Floral vif, beauté."],
- ['Violet Encre','#392950',"Fond sombre, édition, mystère."]]},
+ ['Violet Encre','#392950',"Fond sombre, édition, mystère."],
+ ['Digital Lavender','#B7A6E0',"Tendance tech & wellness, calme numérique."],
+ ['Grape Soda','#6B3FA0',"Pop, boisson, streetwear."],
+ ['Periwinkle','#A5A9E6',"Bleu-violet doux, illustration, papeterie."],
+ ['Mauve Taupe','#8A7480',"Neutre violacé, intérieur, mode."],
+ ['Plum Wine','#5B2A4A',"Prune vineuse, théâtre, nuit."]]},
 
 {cle:'rose',nom:'Roses',repere:'#E5308C',intro:"Sorti du cliché genré, c'est aujourd'hui la famille la plus expressive du nuancier.",
  nuances:[
@@ -621,7 +664,14 @@ const BIBLIO=[
  ['Bois de Rose','#A55A63',"Boisé et rosé, mobilier, mode."],
  ['Rose Guimauve','#FFB6C9',"Confiserie, enfance, douceur."],
  ['Rose Terracotta','#E08A79',"Peau, chaleur, actuel."],
- ['Magenta Doux','#D6398C',"Accent vif mais pas criard."]]},
+ ['Magenta Doux','#D6398C',"Accent vif mais pas criard."],
+ ['Viva Magenta','#BE3455',"Pantone 2023 : audace, vitalité."],
+ ['Barbie Pink','#E0218A',"Pop culture, cinéma, maximalisme."],
+ ['Coquette Pink','#F7C8D8',"Nœuds, balletcore, romantisme."],
+ ['Strawberry Milk','#F9BCC4',"Dessert, kawaii, packaging tendre."],
+ ['Dusty Rose','#CDA0A6',"Vintage doux, mariage, textile."],
+ ['Watermelon','#F2506E',"Fruit, été, énergie fraîche."],
+ ['Sakura','#FADCE4',"Cerisier, printemps, fond très doux."]]},
 
 {cle:'marron',nom:'Bruns',repere:'#6F4E37',intro:"Le retour du brun est l'un des mouvements les plus nets des dernières saisons.",
  nuances:[
@@ -639,7 +689,12 @@ const BIBLIO=[
  ['Châtaigne','#5C3A21',"Boisé profond, papeterie, vin."],
  ['Chocolat au Lait','#8C5A3C',"Gourmand, chaleureux, quotidien."],
  ['Brun Sépia','#704214',"Photographie ancienne, archive."],
- ['Brun Argile','#92664B',"Céramique, terre, matière."]]},
+ ['Brun Argile','#92664B',"Céramique, terre, matière."],
+ ['Mocha Mousse','#A47864',"Pantone 2025 : le brun doux de l'année."],
+ ['Espresso','#2E1C14',"Café serré, fond sombre gourmand."],
+ ['Toffee','#9C6B3F',"Caramel dur, confiserie, chaleur."],
+ ['Chai','#B98A6B',"Épices lactées, wellness, douceur."],
+ ['Truffle','#43302B',"Brun-noir, gastronomie, luxe discret."]]},
 
 {cle:'beige',nom:'Beiges & crèmes',repere:'#E3D5B8',intro:"Les fonds qui font tenir tout le reste. Choisir ici, c'est choisir la température du projet.",
  nuances:[
@@ -657,7 +712,11 @@ const BIBLIO=[
  ['Papyrus','#E8E0CD',"Archive, patrimoine, édition."],
  ['Beige Cachemire','#E6D8C3',"Textile, douceur, luxe discret."],
  ['Lin Blanchi','#EFE6D8',"Fond neutre lumineux."],
- ['Beige Doré','#D9C29C',"Chaleur solaire, packaging cosmétique."]]},
+ ['Beige Doré','#D9C29C',"Chaleur solaire, packaging cosmétique."],
+ ['Oat Milk','#EDE6DA',"Lait d'avoine : le neutre chaud du moment."],
+ ['Clean Girl','#E8DDD0',"Esthétique minimaliste, beauté, no-makeup."],
+ ['Toasted Almond','#C8AF92',"Amande grillée, mode, cuir clair."],
+ ['Bone','#DED8CC',"Os, minéral, fond neutre stable."]]},
 
 {cle:'blanc',nom:'Blancs',repere:'#FFFFFF',intro:"Le blanc n'est jamais neutre : chaque nuance porte une dominante froide, chaude ou nacrée qui change tout le reste de la page.",
  nuances:[
@@ -670,7 +729,10 @@ const BIBLIO=[
  ['Blanc Glacier','#EEF3F5',"Dominante bleutée, tech, fraîcheur."],
  ['Blanc Opalin','#EDEDEB',"Neutre sans dominante, interface sobre."],
  ['Blanc Lune','#F6F5F2',"Fond nocturne inversé, édition."],
- ['Blanc Zinc','#EDEEEE',"Froid et minéral, architecture, industriel."]]},
+ ['Blanc Zinc','#EDEEEE',"Froid et minéral, architecture, industriel."],
+ ['Off-White','#F1EFEA',"Le blanc cassé de référence, mode et web."],
+ ['Cloud White','#F4F6F7',"Blanc nuageux légèrement bleuté, interface."],
+ ['Alabaster','#EAE7DF',"Albâtre, matière, fond de galerie."]]},
 
 {cle:'gris',nom:'Gris & neutres',repere:'#8E8E8B',intro:"Le squelette d'une identité. Un gris a toujours une température : froid, chaud, ou vraiment neutre.",
  nuances:[
@@ -688,7 +750,11 @@ const BIBLIO=[
  ['Étain','#7D8388',"Métal, sobriété, industriel."],
  ['Gris Perle Froid','#C4C8CB',"Neutre technique, interface froide."],
  ['Gris Taupe','#9C9284',"Neutre chaud, mobilier."],
- ['Gris Plomb','#55585C',"Industriel, sérieux, poids visuel."]]},
+ ['Gris Plomb','#55585C',"Industriel, sérieux, poids visuel."],
+ ['Chrome Y2K','#CBD3DA',"Métal liquide, revival années 2000."],
+ ['Mushroom Grey','#A69E96',"Champignon : le neutre chaud très demandé."],
+ ['Graphite Warm','#6B6560',"Gris chaud profond, texte sur fond crème."],
+ ['Slate Deep','#3F464C',"Ardoise sombre, interface, technique."]]},
 
 {cle:'noir',nom:'Noirs & encres',repere:'#14161B',intro:"Il n'existe pas un noir. Chaque noir a une dominante, et c'est elle qui donne le ton.",
  nuances:[
@@ -706,7 +772,10 @@ const BIBLIO=[
  ['Noir Absolu','#000000',"À réserver à l'écran : illisible d'intention en impression."],
  ['Noir Encre Bleutée','#0D1321',"Nuit profonde, tech premium."],
  ['Noir Terreux','#201A14',"Chaleur sombre, bois brûlé."],
- ['Noir Velours','#14100F',"Luxe, texture, packaging premium."]]}
+ ['Noir Velours','#14100F',"Luxe, texture, packaging premium."],
+ ['Mob Wife Black','#100D0D',"Fourrure, glamour excessif, nuit."],
+ ['Ink Noir','#080A0C',"Le plus profond avant le noir pur, écran."],
+ ['Soft Black','#2F3134',"Noir adouci, texte long, confort de lecture."]]}
 ];
 
 /* index à plat */
@@ -755,8 +824,16 @@ function chip(c){
 
 const horsGamutTotal=TOUTES.filter(c=>c.impression.ton==='bad').length;
 
+/* chroma OKLCH ramené sur 0–100 % : 0,37 est proche du maximum atteignable en sRGB */
+const CHROMA_MAX=.37;
+const satPourcent=c=>clamp(c.lch.c/CHROMA_MAX)*100;
+
+const filtreEtat={rendu:'',lMin:0,lMax:100,cMin:0,cMax:100};
+const LIBELLE_RENDU={ok:'fidèle en quadri',warn:"écart à l'impression",bad:'hors gamut CMJN'};
+
 function filtresActifs(){
-  return !!(filtreEtat.famille||filtreEtat.gamut||filtreEtat.lMin>0||filtreEtat.lMax<100);
+  return !!(filtreEtat.rendu||filtreEtat.lMin>0||filtreEtat.lMax<100
+    ||filtreEtat.cMin>0||filtreEtat.cMax<100);
 }
 
 function vueAccueil(filtre=''){
@@ -770,17 +847,17 @@ function vueAccueil(filtre=''){
     const trouve=TOUTES.filter(c=>{
       const cible=normaliser(c.nom)+' '+c.hex.toLowerCase()+' '+normaliser(c.famille)+' '+normaliser(c.usage);
       const passeTexte=!fN||cible.includes(fN);
-      const passeFamille=!filtreEtat.famille||c.familleCle===filtreEtat.famille;
-      const passeGamut=!filtreEtat.gamut||c.impression.ton==='bad';
-      const l=c.lch.l*100;
+      const passeRendu=!filtreEtat.rendu||c.impression.ton===filtreEtat.rendu;
+      const l=c.lch.l*100,s=satPourcent(c);
       const passeLum=l>=filtreEtat.lMin&&l<=filtreEtat.lMax;
-      return passeTexte&&passeFamille&&passeGamut&&passeLum;
+      const passeSat=s>=filtreEtat.cMin&&s<=filtreEtat.cMax;
+      return passeTexte&&passeRendu&&passeLum&&passeSat;
     });
     const desc=[];
     if(brut)desc.push(`texte « ${brut} »`);
-    if(filtreEtat.famille)desc.push((BIBLIO.find(x=>x.cle===filtreEtat.famille)||{}).nom);
-    if(filtreEtat.gamut)desc.push('hors gamut CMJN');
+    if(filtreEtat.rendu)desc.push(LIBELLE_RENDU[filtreEtat.rendu]);
     if(filtreEtat.lMin>0||filtreEtat.lMax<100)desc.push(`luminosité ${filtreEtat.lMin}–${filtreEtat.lMax} %`);
+    if(filtreEtat.cMin>0||filtreEtat.cMax<100)desc.push(`saturation ${filtreEtat.cMin}–${filtreEtat.cMax} %`);
     corps=trouve.length
       ? `<section class="famille"><div class="entete-famille"><h2>${trouve.length} résultat${trouve.length>1?'s':''}</h2>
          <em>${desc.join(' · ')}</em></div><div class="grille">${trouve.map(chip).join('')}</div></section>`
@@ -1011,12 +1088,90 @@ function largeurCase(pref,largeurDispo){
   const maxParLargeur=Math.max(2,Math.floor((largeurDispo+ecart)/(min+ecart)));
   return Math.min(Number(pref),maxParLargeur);
 }
+
+/* --- pavage Bento : découpes en guillotine, donc jamais de trou ---
+   Chaque bande de 6 colonnes est coupée récursivement en deux jusqu'à
+   obtenir le nombre de blocs voulu. Une coupe partage toujours l'espace
+   en entier, donc le pavage reste parfait quelles que soient les tailles. */
+function generateur(graine){
+  let s=(graine>>>0)||1;
+  return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296};
+}
+const MIN_BLOC=2;                                  // aucun bloc sous 2×2
+const capacite=(w,h)=>Math.floor(w/MIN_BLOC)*Math.floor(h/MIN_BLOC);
+
+function decouper(rect,k,rnd){
+  if(k<=1)return[rect];
+  const{x,y,w,h}=rect;
+  const sens=[];
+  if(w>=MIN_BLOC*2)sens.push('v');
+  if(h>=MIN_BLOC*2)sens.push('h');
+  if(!sens.length)return[rect];
+  // on coupe de préférence dans le sens le plus long, pour des blocs équilibrés
+  const prefere=w>h?'v':h>w?'h':(rnd()<.5?'v':'h');
+  const ordre=sens.includes(prefere)?[prefere,...sens.filter(s=>s!==prefere)]:sens;
+  for(const s of ordre){
+    const taille=s==='v'?w:h;
+    const coupes=[];
+    for(let p=MIN_BLOC;p<=taille-MIN_BLOC;p++)coupes.push(p);
+    for(let i=coupes.length-1;i>0;i--){
+      const j=Math.floor(rnd()*(i+1));[coupes[i],coupes[j]]=[coupes[j],coupes[i]];
+    }
+    for(const p of coupes){
+      const a=s==='v'?{x,y,w:p,h}:{x,y,w,h:p};
+      const b=s==='v'?{x:x+p,y,w:w-p,h}:{x,y:y+p,w,h:h-p};
+      // la coupe n'est retenue que si chaque moitié peut porter sa part de blocs
+      const kaMin=Math.max(1,k-capacite(b.w,b.h));
+      const kaMax=Math.min(capacite(a.w,a.h),k-1);
+      if(kaMin>kaMax)continue;
+      const ka=kaMin+Math.floor(rnd()*(kaMax-kaMin+1));
+      return[...decouper(a,ka,rnd),...decouper(b,k-ka,rnd)];
+    }
+  }
+  return[rect];
+}
+
+function pavageBento(nb,cols,rnd){
+  const blocs=[];let ligne=0;
+  while(blocs.length<nb){
+    const reste=nb-blocs.length;
+    const hauteur=4+Math.floor(rnd()*3);            // bandes de 4 à 6 lignes
+    const cap=capacite(cols,hauteur);
+    // densité variable d'une bande à l'autre, sans jamais dépasser la capacité
+    let k=Math.max(2,Math.round(cap*(.55+rnd()*.45)));
+    k=Math.min(k,cap,reste);
+    const bande=decouper({x:0,y:0,w:cols,h:hauteur},k,rnd);
+    bande.forEach(b=>blocs.push({x:b.x,y:ligne+b.y,w:b.w,h:b.h}));
+    ligne+=hauteur;
+  }
+  return blocs;
+}
+
+function colonnesBento(largeur){
+  if(largeur<560)return 2;
+  if(largeur<980)return 4;
+  return 6;
+}
+
 function appliquerAgencement(){
   document.querySelectorAll('.grille').forEach(g=>{
+    const wraps=[...g.children];
     if(agencementActif==='bento'){
       g.classList.add('bento');g.style.removeProperty('--cols');
+      const largeur=g.clientWidth||g.parentElement?.clientWidth||900;
+      const cols=colonnesBento(largeur);
+      // graine mémorisée : le pavage reste stable au redimensionnement
+      if(!g.dataset.graine)g.dataset.graine=Math.floor(Math.random()*1e9);
+      const blocs=pavageBento(wraps.length,cols,generateur(Number(g.dataset.graine)));
+      g.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+      wraps.forEach((el,i)=>{
+        const b=blocs[i];
+        el.style.gridArea=`${b.y+1}/${b.x+1}/span ${b.h}/span ${b.w}`;
+      });
     } else {
       g.classList.remove('bento');
+      g.style.removeProperty('grid-template-columns');
+      wraps.forEach(el=>el.style.removeProperty('grid-area'));
       const largeur=g.clientWidth||g.parentElement?.clientWidth||900;
       g.style.setProperty('--cols',largeurCase(agencementActif,largeur));
     }
@@ -1024,6 +1179,11 @@ function appliquerAgencement(){
 }
 document.getElementById('agencement-boutons').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
+  // recliquer sur Bento tire un nouveau pavage
+  if(b.dataset.cols==='bento'&&agencementActif==='bento'){
+    document.querySelectorAll('.grille').forEach(g=>delete g.dataset.graine);
+    montrer('Nouvel agencement Bento');
+  }
   agencementActif=b.dataset.cols;
   document.querySelectorAll('#agencement-boutons button').forEach(x=>x.classList.toggle('actif',x===b));
   appliquerAgencement();
@@ -1092,36 +1252,39 @@ function viderComparaison(){
 }
 
 /* ---------- filtres combinés ---------- */
-function remplirFiltreFamille(){
-  const sel=document.getElementById('filtre-famille');
-  sel.innerHTML='<option value="">Toutes les familles</option>'+
-    BIBLIO.map(f=>`<option value="${f.cle}">${f.nom}</option>`).join('');
-}
-remplirFiltreFamille();
-const filtreEtat={famille:'',gamut:false,lMin:0,lMax:100};
-const filtreFamilleEl=document.getElementById('filtre-famille');
-const filtreGamutEl=document.getElementById('filtre-gamut');
+const filtreRenduEl=document.getElementById('filtre-rendu');
 const filtreLminEl=document.getElementById('filtre-lmin');
 const filtreLmaxEl=document.getElementById('filtre-lmax');
+const filtreCminEl=document.getElementById('filtre-cmin');
+const filtreCmaxEl=document.getElementById('filtre-cmax');
 const filtreLumVal=document.getElementById('filtre-lum-val');
+const filtreSatVal=document.getElementById('filtre-sat-val');
 const filtreResetBtn=document.getElementById('filtre-reset');
 
-function majFiltres(){
-  if(Number(filtreLminEl.value)>Number(filtreLmaxEl.value)){
-    if(document.activeElement===filtreLminEl)filtreLmaxEl.value=filtreLminEl.value;
-    else filtreLminEl.value=filtreLmaxEl.value;
+function borner(minEl,maxEl){
+  if(Number(minEl.value)>Number(maxEl.value)){
+    if(document.activeElement===minEl)maxEl.value=minEl.value;
+    else minEl.value=maxEl.value;
   }
-  filtreEtat.famille=filtreFamilleEl.value;
-  filtreEtat.gamut=filtreGamutEl.checked;
+}
+function majFiltres(){
+  borner(filtreLminEl,filtreLmaxEl);
+  borner(filtreCminEl,filtreCmaxEl);
+  filtreEtat.rendu=filtreRenduEl.value;
   filtreEtat.lMin=Number(filtreLminEl.value);
   filtreEtat.lMax=Number(filtreLmaxEl.value);
+  filtreEtat.cMin=Number(filtreCminEl.value);
+  filtreEtat.cMax=Number(filtreCmaxEl.value);
   filtreLumVal.textContent=`${filtreEtat.lMin}–${filtreEtat.lMax} %`;
+  filtreSatVal.textContent=`${filtreEtat.cMin}–${filtreEtat.cMax} %`;
   if(location.hash.startsWith('#/couleur/')||location.hash.startsWith('#/comparer/'))return;
   vueAccueil(champ.value);
 }
-[filtreFamilleEl,filtreGamutEl,filtreLminEl,filtreLmaxEl].forEach(el=>el.addEventListener('input',majFiltres));
+[filtreRenduEl,filtreLminEl,filtreLmaxEl,filtreCminEl,filtreCmaxEl]
+  .forEach(el=>el.addEventListener('input',majFiltres));
 filtreResetBtn.addEventListener('click',()=>{
-  filtreFamilleEl.value='';filtreGamutEl.checked=false;filtreLminEl.value=0;filtreLmaxEl.value=100;
+  filtreRenduEl.value='';filtreLminEl.value=0;filtreLmaxEl.value=100;
+  filtreCminEl.value=0;filtreCmaxEl.value=100;
   majFiltres();
 });
 
