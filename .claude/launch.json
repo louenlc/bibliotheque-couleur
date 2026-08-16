@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bibliotheque-couleur",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["/Users/louen/Documents/bibliothèque couleur/.claude/server.js"],
+      "port": 8743
+    }
+  ]
+}

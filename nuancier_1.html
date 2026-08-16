@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nuancier — bibliothèque de couleurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --encre:#14161B;
+  --papier:#F4F4F1;
+  --papier-2:#EAEAE5;
+  --calage:#83867F;
+  --trait:#D9D9D2;
+  --accent:#14161B;
+  --accent-ink:#FFFFFF;
+  --rail:248px;
+  --display:'Bricolage Grotesque',ui-sans-serif,system-ui,sans-serif;
+  --texte:'Instrument Sans',ui-sans-serif,system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--papier);color:var(--encre);font-family:var(--texte);
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--encre);outline-offset:3px}
+
+/* ---------- ossature ---------- */
+.appli{display:grid;grid-template-columns:var(--rail) 1fr;min-height:100vh}
+
+.rail{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  border-right:1px solid var(--trait);padding:26px 20px 40px;
+  display:flex;flex-direction:column;gap:26px;background:var(--papier);
+}
+.marque{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.03em;line-height:1.05}
+.marque span{display:block;font-family:var(--texte);font-weight:400;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--calage);margin-top:6px}
+
+.recherche{position:relative}
+.recherche input{
+  width:100%;font-family:var(--mono);font-size:12px;padding:10px 12px 10px 30px;
+  border:1px solid var(--trait);border-radius:2px;background:#fff;color:var(--encre);
+}
+.recherche input::placeholder{color:var(--calage)}
+.recherche::before{content:'⌕';position:absolute;left:11px;top:8px;color:var(--calage);font-size:14px}
+
+.agencement-label{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--calage);margin-bottom:8px}
+.agencement-boutons{display:flex;border:1px solid var(--trait);border-radius:2px;overflow:hidden}
+.agencement-boutons button{flex:1;padding:7px 0;font-size:12px;font-family:var(--mono);
+  border-right:1px solid var(--trait);background:#fff;transition:background .12s,color .12s}
+.agencement-boutons button:last-child{border-right:none}
+.agencement-boutons button:hover{background:var(--papier-2)}
+.agencement-boutons button.actif{background:var(--encre);color:var(--papier)}
+
+.familles{list-style:none;display:flex;flex-direction:column;gap:1px}
+.familles a{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:2px;font-size:13.5px}
+.familles a:hover{background:var(--papier-2)}
+.familles a.actif{background:var(--encre);color:var(--papier)}
+.pastille{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.compte{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--calage)}
+.familles a.actif .compte{color:rgba(244,244,241,.6)}
+
+.rail footer{margin-top:auto;font-size:11.5px;color:var(--calage);line-height:1.45}
+kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-bottom-width:2px;
+  border-radius:3px;padding:1px 4px;background:#fff}
+
+.scene{padding:0 0 90px}
+
+/* ---------- accueil ---------- */
+.intro{padding:64px 44px 40px;border-bottom:1px solid var(--trait);max-width:1400px}
+.intro h1{font-family:var(--display);font-weight:800;font-size:clamp(38px,6vw,74px);
+  letter-spacing:-.045em;line-height:.94;max-width:15ch}
+.intro p{margin-top:20px;max-width:56ch;font-size:16.5px;color:#3B3E44}
+.chiffres{display:flex;gap:34px;margin-top:32px;flex-wrap:wrap}
+.chiffre b{display:block;font-family:var(--mono);font-size:21px;font-weight:500}
+.chiffre span{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--calage)}
+
+.famille{padding:46px 44px 8px;max-width:1400px}
+.entete-famille{display:flex;align-items:baseline;gap:14px;padding-bottom:16px;
+  border-bottom:1px solid var(--trait);margin-bottom:22px}
+.entete-famille h2{font-family:var(--display);font-weight:600;font-size:27px;letter-spacing:-.03em}
+.entete-famille em{font-style:normal;font-size:13.5px;color:var(--calage);max-width:46ch}
+
+.grille{display:grid;gap:14px;grid-template-columns:repeat(var(--cols,5),1fr)}
+
+/* ---------- agencement Bento ---------- */
+.grille.bento{grid-template-columns:repeat(6,1fr);grid-auto-rows:74px;grid-auto-flow:dense;gap:14px}
+.grille.bento .chip{height:100%;display:flex;flex-direction:column;grid-row:span 2}
+.grille.bento .chip .aplat{flex:1;height:auto;min-height:0}
+.grille.bento .chip .nom{margin-top:8px}
+.grille.bento .chip:nth-child(11n+1){grid-column:span 2;grid-row:span 3}
+.grille.bento .chip:nth-child(11n+6){grid-row:span 3}
+.grille.bento .chip:nth-child(11n+9){grid-column:span 2;grid-row:span 2}
+@media (max-width:1180px){.grille.bento{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:700px){.grille.bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:64px}
+  .grille.bento .chip:nth-child(11n+1),.grille.bento .chip:nth-child(11n+9){grid-column:span 2}}
+
+/* ---------- pastille de couleur (signature) ---------- */
+.chip{display:block;text-align:left;width:100%}
+.chip .aplat{
+  display:block;position:relative;height:112px;border-radius:2px;overflow:hidden;isolation:isolate;
+  box-shadow:inset 0 0 0 1px rgba(20,22,27,.10);
+  transition:transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s;
+}
+.chip:hover .aplat,.chip:focus-visible .aplat{transform:translateY(-4px);
+  box-shadow:inset 0 0 0 1px rgba(20,22,27,.10), 0 10px 20px -10px rgba(20,22,27,.45)}
+/* le code se lit par différence : toujours contrasté, quelle que soit la couleur */
+.chip .code{
+  position:absolute;inset:auto 0 0 0;padding:8px 9px;font-family:var(--mono);font-size:12.5px;
+  font-weight:600;opacity:0;transform:translateY(4px);
+  transition:opacity .15s,transform .15s;letter-spacing:.02em;
+}
+.chip:hover .code,.chip:focus-visible .code{opacity:1;transform:none}
+.chip .nom{display:block;margin-top:9px;font-size:13.5px;font-weight:500;line-height:1.25}
+.chip .meta{display:block;font-family:var(--mono);font-size:10.5px;color:var(--calage);margin-top:2px}
+.chip .hors{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;
+  background:#fff;box-shadow:0 0 0 1.5px rgba(20,22,27,.55)}
+
+/* ---------- fiche ---------- */
+.fiche-tete{position:relative;min-height:340px;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:44px;color:var(--accent-ink)}
+.retour{position:absolute;top:26px;left:44px;font-size:12.5px;letter-spacing:.1em;
+  text-transform:uppercase;opacity:.85;display:flex;gap:8px;align-items:center}
+.retour:hover{opacity:1}
+.fiche-tete .fam{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.75}
+.fiche-tete h1{font-family:var(--display);font-weight:800;font-size:clamp(40px,7vw,86px);
+  letter-spacing:-.045em;line-height:.94;margin:8px 0 16px}
+.fiche-tete .gros-code{font-family:var(--mono);font-size:19px;letter-spacing:.04em}
+.usage{margin-top:14px;max-width:52ch;font-size:15px;opacity:.9}
+
+.bloc{padding:52px 44px;max-width:1400px;border-bottom:1px solid var(--trait)}
+.bloc:last-child{border-bottom:none}
+.titre-bloc{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.titre-bloc h2{font-family:var(--display);font-weight:600;font-size:23px;letter-spacing:-.025em}
+.titre-bloc span{font-family:var(--mono);font-size:10.5px;color:var(--calage);letter-spacing:.1em;text-transform:uppercase}
+.sous{color:var(--calage);font-size:13.5px;margin-bottom:26px;max-width:64ch}
+
+.valeurs{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.valeur{border:1px solid var(--trait);border-radius:2px;background:#fff;padding:13px 14px;text-align:left;
+  transition:border-color .15s,transform .15s}
+.valeur:hover{border-color:var(--accent);transform:translateY(-2px)}
+.valeur dt{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--calage)}
+.valeur dd{font-family:var(--mono);font-size:15px;margin-top:5px;word-break:break-word}
+.valeur small{display:block;font-size:11px;color:var(--calage);margin-top:6px;line-height:1.35;font-family:var(--texte)}
+
+.variation{margin-bottom:30px}
+.variation h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:9px;color:var(--calage)}
+.bande{display:flex;border-radius:2px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(20,22,27,.10)}
+.bande button{flex:1;height:66px;position:relative;isolation:isolate}
+.bande button span{position:absolute;inset:auto 0 0 0;font-family:var(--mono);font-size:10px;font-weight:600;
+  padding:5px 4px;opacity:0;transition:opacity .15s}
+.bande button:hover span,.bande button:focus-visible span{opacity:1}
+.bande.avec-palier button span{opacity:1}
+
+.harmonies{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+.harmonie{border:1px solid var(--trait);border-radius:2px;background:#fff;overflow:hidden}
+.harmonie .duo{display:flex;height:82px}
+.harmonie .duo button{flex:1;position:relative;isolation:isolate}
+.harmonie .duo button span{position:absolute;inset:auto 0 0 0;font-family:var(--mono);font-size:9.5px;
+  font-weight:600;padding:4px;opacity:0;transition:opacity .15s}
+.harmonie .duo button:hover span{opacity:1}
+.harmonie .txt{padding:12px 14px}
+.harmonie h4{font-size:14px;font-weight:600}
+.harmonie p{font-size:12px;color:var(--calage);margin-top:4px;line-height:1.4}
+
+/* ---------- épreuve d'impression ---------- */
+.epreuve{display:grid;gap:26px;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start}
+.papiers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.papier{border:1px solid var(--trait);border-radius:2px;background:#fff;overflow:hidden}
+.papier .ap{height:118px;isolation:isolate}
+.papier .lg{padding:10px 12px}
+.papier b{display:block;font-size:12.5px}
+.papier code{font-family:var(--mono);font-size:11px;color:var(--calage)}
+.papier em{display:block;font-style:normal;font-size:11px;color:var(--calage);margin-top:5px;line-height:1.4}
+
+.verdict{border:1px solid var(--trait);border-radius:2px;background:#fff;padding:18px}
+.badge{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:2px}
+.badge::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.badge.ok{background:#E4F0E6;color:#1F6134}
+.badge.warn{background:#FBEEDC;color:#8A5A11}
+.badge.bad{background:#F8E1E1;color:#8E1F24}
+.verdict p{margin-top:12px;font-size:13.5px;line-height:1.5}
+.jauge{margin-top:16px}
+.jauge .lg{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--calage)}
+.jauge .piste{height:6px;background:var(--papier-2);border-radius:99px;margin-top:6px;overflow:hidden}
+.jauge .piste i{display:block;height:100%;background:var(--encre);border-radius:99px}
+.conseils{list-style:none;margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.conseils li{font-size:12.5px;line-height:1.45;padding-left:16px;position:relative;color:#3B3E44}
+.conseils li::before{content:'';position:absolute;left:0;top:7px;width:6px;height:1px;background:var(--calage)}
+.remplacement{margin-top:18px;border-top:1px solid var(--trait);padding-top:16px;display:flex;gap:12px;align-items:center}
+.remplacement .pave{width:46px;height:46px;border-radius:2px;flex:none;box-shadow:inset 0 0 0 1px rgba(20,22,27,.12)}
+.remplacement b{display:block;font-size:12.5px}
+.remplacement code{font-family:var(--mono);font-size:11.5px;color:var(--calage)}
+
+/* ---------- accessibilité ---------- */
+.contrastes{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.paire{border:1px solid var(--trait);border-radius:2px;overflow:hidden;display:flex;flex-direction:column}
+.paire .demo{flex:1}
+.paire .demo{padding:20px 16px;font-size:17px;font-weight:600}
+.paire .note{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:#fff;
+  font-family:var(--mono);font-size:11.5px}
+.tag{font-size:10px;letter-spacing:.08em;padding:2px 6px;border-radius:2px;font-family:var(--texte);font-weight:600}
+.tag.ok{background:#E4F0E6;color:#1F6134}
+.tag.no{background:#F8E1E1;color:#8E1F24}
+
+.proches{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
+
+/* ---------- toast ---------- */
+#toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,18px);background:var(--encre);
+  color:var(--papier);font-family:var(--mono);font-size:12.5px;padding:11px 18px;border-radius:2px;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:50}
+#toast.vu{opacity:1;transform:translate(-50%,0)}
+
+.vide{padding:60px 44px;color:var(--calage)}
+
+@media (max-width:1150px){.valeurs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){
+  .appli{grid-template-columns:1fr}
+  .rail{position:static;height:auto;border-right:none;border-bottom:1px solid var(--trait);padding:18px 20px}
+  .familles{flex-direction:row;flex-wrap:wrap}
+  .familles a{padding:6px 10px;border:1px solid var(--trait);border-radius:99px}
+  .compte{display:none}
+  .rail footer{display:none}
+  .intro,.famille,.bloc,.fiche-tete{padding-left:20px;padding-right:20px}
+  .valeurs{grid-template-columns:1fr}
+  .fiche-tete{min-height:260px}
+  .retour{left:20px}
+  .epreuve{grid-template-columns:1fr}
+  .papiers{grid-template-columns:1fr}
+}
+/* sans survol (tactile), les codes restent lisibles en permanence */
+@media (hover:none){
+  .chip .code,.bande button span,.harmonie .duo button span{opacity:1;transform:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}
+  html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="appli">
+  <nav class="rail">
+    <div class="marque">Nuancier<span>Bibliothèque de couleurs</span></div>
+    <div class="recherche">
+      <input id="q" type="search" placeholder="Nom ou code hex…" autocomplete="off" aria-label="Rechercher une couleur">
+    </div>
+    <div class="agencement" role="group" aria-label="Agencement de la grille">
+      <span class="agencement-label">Affichage</span>
+      <div class="agencement-boutons" id="agencement-boutons">
+        <button data-cols="3">3</button>
+        <button data-cols="4">4</button>
+        <button data-cols="5" class="actif">5</button>
+        <button data-cols="6">6</button>
+        <button data-cols="bento">Bento</button>
+      </div>
+    </div>
+    <ul class="familles" id="nav-familles"></ul>
+    <footer>
+      <kbd>/</kbd> pour chercher · <kbd>Échap</kbd> pour revenir<br><br>
+      Cliquez sur n'importe quelle valeur pour la copier.
+    </footer>
+  </nav>
+  <main class="scene" id="scene"></main>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   1. MOTEUR COULEUR
+   ============================================================ */
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const round=(v,d=0)=>{const p=10**d;return Math.round(v*p)/p};
+
+function hexToRgb(hex){let h=hex.replace('#','').trim();
+  if(h.length===3)h=h.split('').map(c=>c+c).join('');
+  const n=parseInt(h,16);return{r:(n>>16)&255,g:(n>>8)&255,b:n&255}}
+function rgbToHex(r,g,b){const f=v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0');
+  return'#'+(f(r)+f(g)+f(b)).toUpperCase()}
+
+function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),l=(max+min)/2;let h=0,s=0;const d=max-min;
+  if(d!==0){s=l>.5?d/(2-max-min):d/(max+min);
+    if(max===r)h=((g-b)/d+(g<b?6:0));else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60}
+  return{h,s:s*100,l:l*100}}
+function hslToRgb(h,s,l){h=((h%360)+360)%360;s=clamp(s/100);l=clamp(l/100);
+  const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs(((h/60)%2)-1)),m=l-c/2;let r=0,g=0,b=0;
+  if(h<60)[r,g,b]=[c,x,0];else if(h<120)[r,g,b]=[x,c,0];else if(h<180)[r,g,b]=[0,c,x];
+  else if(h<240)[r,g,b]=[0,x,c];else if(h<300)[r,g,b]=[x,0,c];else[r,g,b]=[c,0,x];
+  return{r:(r+m)*255,g:(g+m)*255,b:(b+m)*255}}
+const hslHex=(h,s,l)=>{const c=hslToRgb(h,s,l);return rgbToHex(c.r,c.g,c.b)};
+
+function rgbToHsv(r,g,b){r/=255;g/=255;b/=255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;let h=0;
+  if(d!==0){if(max===r)h=((g-b)/d+(g<b?6:0));else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60}
+  return{h,s:max===0?0:(d/max)*100,v:max*100}}
+
+function rgbToCmyk(r,g,b){const R=r/255,G=g/255,B=b/255,k=1-Math.max(R,G,B);
+  if(k>=.9999)return{c:0,m:0,y:0,k:100};
+  return{c:(1-R-k)/(1-k)*100,m:(1-G-k)/(1-k)*100,y:(1-B-k)/(1-k)*100,k:k*100}}
+
+const toLin=u=>u<=.04045?u/12.92:((u+.055)/1.055)**2.4;
+const toSrgb=u=>u<=.0031308?12.92*u:1.055*Math.pow(u,1/2.4)-.055;
+function rgbToOklab(r,g,b){const R=toLin(r/255),G=toLin(g/255),B=toLin(b/255);
+  const l=Math.cbrt(.4122214708*R+.5363325363*G+.0514459929*B);
+  const m=Math.cbrt(.2119034982*R+.6806995451*G+.1073969566*B);
+  const s=Math.cbrt(.0883024619*R+.2817188376*G+.6299787005*B);
+  return{L:.2104542553*l+.7936177850*m-.0040720468*s,
+    a:1.9779984951*l-2.4285922050*m+.4505937099*s,
+    b:.0259040371*l+.7827717662*m-.8086757660*s}}
+function oklabToRgb(L,a,bb){const l_=L+.3963377774*a+.2158037573*bb,
+  m_=L-.1055613458*a-.0638541728*bb,s_=L-.0894841775*a-1.2914855480*bb;
+  const l=l_**3,m=m_**3,s=s_**3;
+  const R=4.0767416621*l-3.3077115913*m+.2309699292*s,
+    G=-1.2684380046*l+2.6097574011*m-.3413193965*s,
+    B=-.0041960863*l-.7034186147*m+1.7076147010*s;
+  return{r:toSrgb(R)*255,g:toSrgb(G)*255,b:toSrgb(B)*255,raw:[R,G,B]}}
+function rgbToOklch(r,g,b){const o=rgbToOklab(r,g,b);const C=Math.hypot(o.a,o.b);
+  let H=Math.atan2(o.b,o.a)*180/Math.PI;if(H<0)H+=360;return{l:o.L,c:C,h:H}}
+function oklchToRgbClipped(L,C,H){const rad=H*Math.PI/180;
+  const test=c=>oklabToRgb(L,c*Math.cos(rad),c*Math.sin(rad)).raw.every(v=>v>=-.0008&&v<=1.0008);
+  let c=C;
+  if(!test(c)){let lo=0,hi=C;for(let i=0;i<24;i++){const mid=(lo+hi)/2;test(mid)?(lo=mid):(hi=mid)}c=lo}
+  const o=oklabToRgb(clamp(L),c*Math.cos(rad),c*Math.sin(rad));
+  return{r:clamp(o.r,0,255),g:clamp(o.g,0,255),b:clamp(o.b,0,255)}}
+const oklchHex=(L,C,H)=>{const c=oklchToRgbClipped(L,C,H);return rgbToHex(c.r,c.g,c.b)};
+
+function relLum(r,g,b){return .2126*toLin(r/255)+.7152*toLin(g/255)+.0722*toLin(b/255)}
+function contrast(h1,h2){const a=hexToRgb(h1),b=hexToRgb(h2);
+  const l1=relLum(a.r,a.g,a.b),l2=relLum(b.r,b.g,b.b);
+  return(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05)}
+const encreLisible=hex=>contrast(hex,'#FFFFFF')>=contrast(hex,'#0B0C0E')?'#FFFFFF':'#0B0C0E';
+
+function formats(hex){const{r,g,b}=hexToRgb(hex);
+  const hsl=rgbToHsl(r,g,b),hsv=rgbToHsv(r,g,b),cmyk=rgbToCmyk(r,g,b),lch=rgbToOklch(r,g,b);
+  return{hex:hex.toUpperCase(),
+    rgb:`${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}`,
+    cmyk:`${round(cmyk.c)}, ${round(cmyk.m)}, ${round(cmyk.y)}, ${round(cmyk.k)}`,
+    hsl:`${round(hsl.h)}°, ${round(hsl.s)}%, ${round(hsl.l)}%`,
+    hsv:`${round(hsv.h)}°, ${round(hsv.s)}%, ${round(hsv.v)}%`,
+    oklch:`${round(lch.l*100,1)}% ${round(lch.c,3)} ${round(lch.h,1)}`,
+    css:{rgb:`rgb(${Math.round(r)} ${Math.round(g)} ${Math.round(b)})`,
+      hsl:`hsl(${round(hsl.h)} ${round(hsl.s)}% ${round(hsl.l)}%)`,
+      oklch:`oklch(${round(lch.l*100,1)}% ${round(lch.c,3)} ${round(lch.h,1)})`},
+    raw:{r,g,b,hsl,hsv,cmyk,lch}}}
+
+function mix(hex,cible,t){const a=hexToRgb(hex),b=hexToRgb(cible);
+  return rgbToHex(a.r+(b.r-a.r)*t,a.g+(b.g-a.g)*t,a.b+(b.b-a.b)*t)}
+
+const PALIERS=[['50',.972],['100',.942],['200',.885],['300',.812],['400',.733],['500',.655],
+  ['600',.575],['700',.492],['800',.414],['900',.345],['950',.245]];
+function echelleTailwind(hex){const{r,g,b}=hexToRgb(hex);const base=rgbToOklch(r,g,b);
+  return PALIERS.map(([label,L])=>{
+    const cloche=1-Math.abs(L-.62)**1.6*1.5;
+    return{label,hex:oklchHex(L,base.c*clamp(cloche,.06,1.12),base.h)}})}
+
+function rampe(hex,type,n=10){const{r,g,b}=hexToRgb(hex);const hsl=rgbToHsl(r,g,b);const out=[];
+  for(let i=0;i<n;i++){const t=i/(n-1);
+    if(type==='ombres')out.push(mix(hex,'#000000',t*.9));
+    else if(type==='claires')out.push(mix(hex,'#FFFFFF',t*.92));
+    else if(type==='tons')out.push(mix(hex,'#808080',t*.9));
+    else if(type==='saturation')out.push(hslHex(hsl.h,t*100,hsl.l));
+    else if(type==='voisines')out.push(hslHex(hsl.h-45+t*90,hsl.s,hsl.l))}
+  return out}
+
+function harmonies(hex){const{r,g,b}=hexToRgb(hex);const{h,s,l}=rgbToHsl(r,g,b);
+  const at=d=>hslHex(h+d,s,l);
+  const lift=(dl)=>hslHex(h,s,clamp(l+dl,4,96));
+  return[
+    {nom:'Analogues',desc:'Teintes voisines sur le cercle. Doux, cohérent, sans tension.',colors:[at(-30),hex,at(30)]},
+    {nom:'Complémentaires',desc:'Opposition directe. Contraste maximal, à doser.',colors:[hex,at(180)]},
+    {nom:'Complémentaires divisées',desc:'Le punch du complémentaire, en moins brutal.',colors:[hex,at(150),at(210)]},
+    {nom:'Triades',desc:'Trois teintes équidistantes. Vif et équilibré.',colors:[hex,at(120),at(240)]},
+    {nom:'Tétradiques',desc:'Deux paires de complémentaires. Riche, exige une dominante.',colors:[hex,at(60),at(180),at(240)]},
+    {nom:'Carré',desc:'Quatre teintes à 90°. Très dynamique, gardez une couleur majoritaire.',colors:[hex,at(90),at(180),at(270)]},
+    {nom:'Monochromatique',desc:'Une seule teinte, plusieurs clartés. Sobre et sûr.',colors:[lift(28),lift(14),hex,lift(-14),lift(-26)]},
+    {nom:'Composé',desc:'Un complémentaire adouci par ses voisins.',colors:[hex,at(30),at(180),at(210)]},
+    {nom:'Nuances',desc:'Même teinte, saturation décroissante. Idéal pour les fonds.',colors:[hex,hslHex(h,s*.78,l),hslHex(h,s*.55,l),hslHex(h,s*.33,l),hslHex(h,s*.12,l)]}]}
+
+/* --- gamut CMJN approximatif (référence offset couché type FOGRA51) --- */
+const GAMUT=[[0,.175,.55],[25,.175,.55],[60,.170,.68],[100,.200,.90],[145,.145,.68],
+  [200,.140,.65],[265,.180,.45],[310,.160,.50],[350,.175,.55],[360,.175,.55]];
+function chromaMax(h,L){const H=((h%360)+360)%360;let ceil=.16,peak=.6;
+  for(let i=0;i<GAMUT.length-1;i++){const[h0,c0,p0]=GAMUT[i],[h1,c1,p1]=GAMUT[i+1];
+    if(H>=h0&&H<=h1){const t=(H-h0)/(h1-h0);ceil=c0+(c1-c0)*t;peak=p0+(p1-p0)*t;break}}
+  return ceil*clamp(1-(Math.abs(L-peak)/.55)**1.8,.05,1)}
+
+function profilImpression(hex){
+  const{r,g,b}=hexToRgb(hex);const lch=rgbToOklch(r,g,b);const cmyk=rgbToCmyk(r,g,b);
+  const tac=cmyk.c+cmyk.m+cmyk.y+cmyk.k;
+  // plancher : sous 0,06 de chroma, toute couleur est reproductible sans effort
+  const ceil=Math.max(chromaMax(lch.h,lch.l),.055);
+  const ecart=lch.c<.06?0:Math.max(0,(lch.c-ceil)/lch.c);
+  const couche=oklchHex(lch.l*.985,Math.min(lch.c,ceil),lch.h);
+  const nonCouche=oklchHex(clamp(lch.l*.955+(lch.l>.55?-.012:.018)),Math.min(lch.c,ceil)*.76,lch.h);
+
+  let verdict,ton,resume;
+  if(ecart<=.02){verdict='Fidèle en quadri';ton='ok';
+    resume="La couleur tient dans le gamut CMJN. L'écran et le tirage seront très proches.";}
+  else if(ecart<=.14){verdict='Léger écart';ton='warn';
+    resume="Perte de vivacité légère à l'impression. Acceptable sans retouche, sauf si cette couleur porte l'identité.";}
+  else if(ecart<=.32){verdict='Écart marqué';ton='warn';
+    resume="L'encre ne peut pas atteindre cette saturation. Le tirage sera nettement plus terne que l'écran.";}
+  else{verdict='Hors gamut CMJN';ton='bad';
+    resume="Irreproductible en quadri. Prévoyez une couleur de substitution, ou un ton direct.";}
+
+  const conseils=[];
+  if(tac>300)conseils.push(`Encrage total de ${round(tac)} % : au-delà des 300 % tolérés en offset couché. Demandez une réduction (GCR) au photograveur pour éviter le maculage et les temps de séchage.`);
+  if(lch.l<.22&&cmyk.k>85&&tac<250)conseils.push("Pour un aplat noir profond, remplacez le 100 % noir par un noir riche : C 60 / M 40 / J 40 / N 100.");
+  if(lch.l>.93)conseils.push("Très clair : sous 8 % de trame, la couleur risque de disparaître au calage. Envisagez une réserve papier plutôt qu'un aplat.");
+  if(ecart>.32)conseils.push("Pour un aplat identitaire, passez en ton direct (encre Pantone) plutôt qu'en quadri : la teinte restera stable d'un tirage à l'autre.");
+  if(ecart>.14&&lch.l>.5)conseils.push("Sur papier non couché, compensez en assombrissant légèrement la teinte source : le papier absorbe l'encre et éclaircit le rendu perçu.");
+  if(lch.c<.03&&lch.l>.3&&lch.l<.85)conseils.push("Gris neutre : imprimez-le en noir seul plutôt qu'en quadri, une dérive de calage suffit à le faire virer vert ou rose.");
+  if(!conseils.length)conseils.push("Aucune précaution particulière. Validez tout de même sur épreuve contractuelle avant le bon à tirer.");
+
+  return{verdict,ton,resume,tac:round(tac),couche,nonCouche,
+    alternative:ecart>.02?couche:null,ecart:round(ecart*100),conseils}}
+
+/* ============================================================
+   2. BIBLIOTHÈQUE
+   ============================================================ */
+const BIBLIO=[
+{cle:'rouge',nom:'Rouges',repere:'#C81E3A',intro:"L'urgence, le désir, le signal. Ils dominent une composition dès 5 % de surface.",
+ nuances:[
+ ['Cerise Noire','#5C0A22',"Fonds de couverture, packaging spiritueux."],
+ ['Rouge Cardinal','#8A1425',"Identité institutionnelle qui veut de l'autorité."],
+ ['Rubis Velours','#A81C33',"Textile, beauté, éditions limitées."],
+ ['Rouge Baiser','#C81E3A',"Le rouge de référence : lisible, chaud, non agressif."],
+ ['Coquelicot','#E03B33',"Affiche, signalétique culturelle."],
+ ['Rouge Néon','#FF2D55',"Interfaces, jeunesse, appels à l'action."],
+ ['Grenade Fraîche','#E8455F',"Food, cosmétique, printemps."],
+ ['Braise','#B33A2B',"Artisanat, céramique, feu."],
+ ['Rouge Terracotta','#C15540',"Architecture, intérieur, matière."],
+ ['Corail Brûlé','#E4674F',"Accent chaleureux sur fond crème."],
+ ['Blush Poudré','#F0A9A0',"Fond doux, éditorial soin."],
+ ['Rouge Fumé','#7D4A47',"Neutre chaud, boiseries, texte secondaire."],
+ ['Rouge Sumac','#A32638',"Épices, food éditorial, chaleur discrète."],
+ ['Rouge Vintage','#C1443B',"Affiche rétro, sérigraphie, patine."],
+ ['Grenadine','#ED5265',"Boisson, packaging pop, été."]]},
+
+{cle:'orange',nom:'Oranges',repere:'#FF5F1F',intro:"Énergie sans la violence du rouge. Le ton le plus difficile à imprimer fidèlement.",
+ nuances:[
+ ['Ambre Solaire','#E8912D',"Chaleur dorée, hospitalité."],
+ ['Mandarine Pop','#FF6B2C',"Sport, tech grand public, jeunesse."],
+ ['Abricot Velours','#F4A26B',"Peau, pâtisserie, douceur."],
+ ['Terre Cuite','#C96A4A',"Matière, poterie, décoration."],
+ ['Cuivre Poli','#B5652F',"Métal, luxe discret, spiritueux."],
+ ['Orange Sanguine','#E24A22',"Agrume, punch, packaging."],
+ ['Safran','#E9A03B',"Épice, cuisine, Sud."],
+ ['Pêche Douce','#FBC7A4',"Fond clair chaleureux, beauté."],
+ ['Rouille','#9C4A22',"Automne, industriel, patine."],
+ ['Papaye','#FF8552',"Tropical, applications ludiques."],
+ ['Caramel Beurre Salé','#C98A54',"Épicerie fine, boulangerie."],
+ ['Orange Néon','#FF5F1F',"Signalétique, sécurité, streetwear."],
+ ['Orange Brûlé','#D2601C',"Automne, feuillage, chaleur mate."],
+ ['Clémentine','#FF7F3F',"Agrume vif, énergie, jeunesse."],
+ ['Orange Argile','#B9663D',"Céramique, terre cuite claire."]]},
+
+{cle:'jaune',nom:'Jaunes',repere:'#E9C11A',intro:"La couleur la plus lumineuse du cercle, et la plus traître : illisible sur blanc.",
+ nuances:[
+ ['Jaune Citron','#F2E63D',"Accent vif, jeunesse, fond de bloc."],
+ ['Beurre Frais','#F7E7A1',"Fond doux, papeterie, enfance."],
+ ['Moutarde Vintage','#C9A227',"Seventies, mode, éditions."],
+ ['Or Liquide','#D4A017',"Premium, festif, sur fond sombre."],
+ ['Miel Sauvage','#D99B2B',"Naturel, apiculture, cosmétique."],
+ ['Jaune Poussin','#FFDE59',"Enfance, optimisme, illustration."],
+ ['Blé Mûr','#E3C567',"Agroalimentaire, campagne."],
+ ['Jaune Fluo','#E8FF3A',"Rave, sport, alerte."],
+ ['Ocre Ancien','#B8860B',"Terre, archéologie, patrimoine."],
+ ['Champagne','#F0E2C0',"Fond neutre chaud, événementiel."],
+ ['Curcuma','#E5A00D',"Épice, wellness, food."],
+ ['Jaune Soufre','#F5D400',"Signal, avertissement, contraste fort."],
+ ['Jaune Beurre Doux','#EBD48A',"Fond pâtissier, douceur, papeterie."],
+ ['Jaune Canari','#FFD23F',"Signal joyeux, packaging enfant."],
+ ['Chartreuse','#C6D42B',"Charnière jaune-vert, très actuel."]]},
+
+{cle:'vert',nom:'Verts',repere:'#0F8A5F',intro:"Le repos de l'œil. Attention : le vert perd beaucoup en quadri dès qu'il se sature.",
+ nuances:[
+ ['Vert Sauge','#A8B79A',"Le neutre végétal, très demandé en identité."],
+ ['Matcha','#8FA36B',"Bien-être, alimentaire, japonisant."],
+ ['Vert Olive','#6B7A3A',"Mode, méditerranéen, militaire doux."],
+ ['Forêt Profonde','#1F3B2C',"Fond sombre alternatif au noir."],
+ ['Vert Émeraude','#0F8A5F',"Finance, luxe, signature forte."],
+ ['Menthe Glacée','#A8E6CF',"Interfaces, fraîcheur, santé."],
+ ['Pistache','#B5C689',"Gourmandise, printemps, packaging."],
+ ['Vert Militaire','#4B5320',"Outdoor, robustesse, workwear."],
+ ['Vert Fougère','#4F7942',"Nature, écologie, éditorial."],
+ ['Lime Électrique','#B4FF39',"Accent numérique brutal, gaming."],
+ ['Eucalyptus','#78A08F',"Spa, soin, mobilier."],
+ ['Vert Bouteille','#14532D',"Vin, héritage, papeterie haut de gamme."],
+ ['Vert Basilic','#4F7A3D',"Cuisine, fraîcheur, nature."],
+ ['Céladon Foncé','#5E8C72',"Céramique, apaisement, intemporel."],
+ ['Vert Cyber','#39FF6A',"Gaming, tech, alerte positive."]]},
+
+{cle:'turquoise',nom:'Turquoises & cyans',repere:'#2EC4B6',intro:"Entre eau et écran. La famille la plus fragile en impression.",
+ nuances:[
+ ['Turquoise Lagon','#2EC4B6',"Voyage, cosmétique, applications."],
+ ['Céladon','#ACD8CA',"Céramique, fond tendre, artisanat."],
+ ['Cyan Digital','#00E5FF',"Interfaces sombres, néon, tech."],
+ ['Bleu Canard','#12626E',"Identité sérieuse mais pas bleu marine."],
+ ["Vert d'Eau",'#C7E8E2',"Fond clair apaisant, médical."],
+ ['Aigue-Marine','#7FD4C1',"Bijouterie, été, illustration."],
+ ['Teal Profond','#0B4F4A',"Fond sombre chaud, éditorial."],
+ ['Bleu Piscine','#34B6D9',"Loisirs, enfance, sport nautique."],
+ ['Écume','#DFF3EF',"Fond quasi blanc, respiration."],
+ ['Jade Poli','#00A896',"Accent vif, wellness, fintech."],
+ ['Bleu Glacier','#9FD6E8',"Hiver, fraîcheur, aération."],
+ ['Sarcelle Vintage','#3E7C7B',"Rétro, mobilier, affiche."],
+ ['Bleu Paon','#036666',"Luxe, plumage, profondeur."],
+ ['Turquoise Poussière','#7FB9AE',"Doux, spa, intemporel."],
+ ['Cyan Glacé','#B8ECEC',"Fond très clair, fraîcheur."]]},
+
+{cle:'bleu',nom:'Bleus',repere:'#0047FF',intro:"La couleur préférée du monde, donc la plus banale. Le choix se joue dans la nuance.",
+ nuances:[
+ ['Bleu Klein','#002FA7',"Art, mode, saturation extrême."],
+ ['Bleu Nuit','#101B3D',"Fond sombre élégant, alternative au noir."],
+ ['Bleu Denim','#4A6FA5',"Textile, quotidien, sans agressivité."],
+ ['Bleu Ciel','#A9CBEB',"Fond léger, aération, enfance."],
+ ['Cobalt Pop','#0047FF',"Liens, boutons, identité numérique."],
+ ['Bleu Ardoise','#55647A',"Neutre froid, texte secondaire."],
+ ['Indigo Encre','#2B3A67',"Édition, savoir, sérieux."],
+ ['Azur','#2E86DE',"Le bleu d'interface par défaut, très lisible."],
+ ['Bleu Poudre','#C3D7EE',"Fond doux, médical, corporate léger."],
+ ['Marine Classique','#1B2A49',"Institutionnel, uniforme, luxe sobre."],
+ ['Bleu Cyanotype','#1B4A8A',"Photographie, archive, technique."],
+ ['Bleu Givré','#DCE8F5',"Presque blanc, séparateurs, cartes."],
+ ['Bleu Pétrole','#1B4B5A',"Sérieux, technique, profondeur."],
+ ['Bleu Horizon','#6FA8DC',"Ciel, voyage, respiration."],
+ ['Bleu Roi','#1338BE',"Sport, drapeau, énergie institutionnelle."]]},
+
+{cle:'violet',nom:'Violets',repere:'#8A5FBF',intro:"Créatif et un peu risqué. Vire facilement au bleu à l'impression.",
+ nuances:[
+ ['Lavande Douce','#C3B1E1',"Beauté, bien-être, fond pastel."],
+ ['Améthyste','#8A5FBF',"Créatif, culturel, identité jeune."],
+ ['Prune Profonde','#4A2545',"Fond sombre riche, vin, nuit."],
+ ['Mauve Poudré','#D5C2D8',"Papeterie, soin, mariage."],
+ ['Ultraviolet','#5F4B8B',"Technologie, musique, mystère."],
+ ['Aubergine','#3D2331',"Gastronomie, matière, sobriété."],
+ ['Lilas Pastel','#DCC6F0',"Interfaces douces, illustration."],
+ ['Violet Néon','#A020F0',"Gaming, streaming, saturation maximale."],
+ ['Glycine','#9A86C4',"Floral, printemps, éditorial."],
+ ['Byzantin','#6D2E8C',"Spectacle, affiche, richesse."],
+ ['Iris Sauvage','#5D4E8C',"Neutre coloré, fond de section."],
+ ['Violet Cendré','#6E6379',"Gris violacé, texte secondaire chic."],
+ ['Violet Cassis','#4B2E5C',"Fruit, gourmandise, nuit douce."],
+ ['Orchidée','#B564C4',"Floral vif, beauté."],
+ ['Violet Encre','#392950',"Fond sombre, édition, mystère."]]},
+
+{cle:'rose',nom:'Roses',repere:'#E5308C',intro:"Sorti du cliché genré, c'est aujourd'hui la famille la plus expressive du nuancier.",
+ nuances:[
+ ['Rose Poudré','#F4C6CE',"Fond tendre, beauté, papeterie."],
+ ['Fuchsia Pop','#E5308C',"Affiche, musique, contraste maximal."],
+ ['Vieux Rose','#C08081',"Vintage, textile, douceur patinée."],
+ ['Rose Millennial','#F2B8C6',"Le rose devenu neutre, très employé."],
+ ['Magenta Électrique','#FF00A0',"Numérique pur, hors gamut assumé."],
+ ['Rose Bonbon','#FF6FA8',"Ludique, jeunesse, food."],
+ ['Rose Nude','#E8CFC7',"Peau, minimalisme, cosmétique."],
+ ['Framboise','#B03060',"Gourmand, profond, féminin sans mièvrerie."],
+ ['Rose Cendré','#B98A94',"Neutre rosé, arrière-plans."],
+ ['Rose Litchi','#F5C1D0',"Pastel vif, packaging, illustration."],
+ ['Rose Néon','#FF3EA5',"Nuit, événementiel, streetwear."],
+ ['Bois de Rose','#A55A63',"Boisé et rosé, mobilier, mode."],
+ ['Rose Guimauve','#FFB6C9',"Confiserie, enfance, douceur."],
+ ['Rose Terracotta','#E08A79',"Peau, chaleur, actuel."],
+ ['Magenta Doux','#D6398C',"Accent vif mais pas criard."]]},
+
+{cle:'marron',nom:'Bruns',repere:'#6F4E37',intro:"Le retour du brun est l'un des mouvements les plus nets des dernières saisons.",
+ nuances:[
+ ['Chocolat Noir','#3B2219',"Fond sombre chaleureux, cacao, luxe."],
+ ['Moka','#6F4E37',"Café, artisanat, texte sur fond crème."],
+ ['Noisette','#A47551',"Cuir, mobilier, chaleur moyenne."],
+ ['Cognac','#9A5B2E',"Maroquinerie, spiritueux, patine."],
+ ['Taupe Chaud','#8B7565',"Neutre polyvalent, intérieur."],
+ ['Cannelle','#A65E2E',"Épice, saison froide, food."],
+ ['Café Latte','#C4A484',"Fond clair chaud, alternative au beige."],
+ ['Acajou','#6C3428',"Ébénisterie, sérieux, héritage."],
+ ['Terre de Sienne','#8B4A2B',"Pigment historique, matière, art."],
+ ['Écorce','#4E3B31',"Fond sombre naturel, outdoor."],
+ ['Cuir Vintage','#7B4B2A',"Bagagerie, artisanat, authenticité."],
+ ['Châtaigne','#5C3A21',"Boisé profond, papeterie, vin."],
+ ['Chocolat au Lait','#8C5A3C',"Gourmand, chaleureux, quotidien."],
+ ['Brun Sépia','#704214',"Photographie ancienne, archive."],
+ ['Brun Argile','#92664B',"Céramique, terre, matière."]]},
+
+{cle:'beige',nom:'Beiges & crèmes',repere:'#E3D5B8',intro:"Les fonds qui font tenir tout le reste. Choisir ici, c'est choisir la température du projet.",
+ nuances:[
+ ['Crème Vanille','#F5EFE0',"Le fond de page chaud par excellence."],
+ ['Sable Chaud','#E3D5B8',"Nature, cosmétique, packaging brut."],
+ ['Lin Naturel','#EDE3D2',"Textile, slow design, édition."],
+ ['Grège','#C9BFB1',"Neutre entre gris et beige, très stable."],
+ ["Coquille d'Œuf",'#F7F3E9',"Presque blanc, moins dur que le blanc pur."],
+ ['Avoine','#DCCFB8',"Alimentaire, naturel, fond de bloc."],
+ ['Ivoire','#FBF8EC',"Papeterie haut de gamme, invitation."],
+ ['Beige Rosé','#E7D5C9',"Chaleur peau, beauté, tendresse."],
+ ['Camel Doux','#D2B48C',"Mode, cuir clair, saison."],
+ ['Argile Pâle','#CDBBA7',"Céramique, minéral, intérieur."],
+ ['Craie','#F2EDE6',"Fond neutre, séparateurs, cartes."],
+ ['Papyrus','#E8E0CD',"Archive, patrimoine, édition."],
+ ['Beige Cachemire','#E6D8C3',"Textile, douceur, luxe discret."],
+ ['Lin Blanchi','#EFE6D8',"Fond neutre lumineux."],
+ ['Beige Doré','#D9C29C',"Chaleur solaire, packaging cosmétique."]]},
+
+{cle:'blanc',nom:'Blancs',repere:'#FFFFFF',intro:"Le blanc n'est jamais neutre : chaque nuance porte une dominante froide, chaude ou nacrée qui change tout le reste de la page.",
+ nuances:[
+ ['Blanc Pur','#FFFFFF',"Écran uniquement : à l'impression, il vire toujours vers le blanc du papier."],
+ ['Blanc Neige','#FAFAFA',"Fond d'interface, respiration maximale."],
+ ['Blanc Coton','#F8F7F4',"Le blanc chaud le plus polyvalent, papeterie et web."],
+ ['Blanc Lait','#FAF6EE',"Doux et laiteux, packaging cosmétique."],
+ ['Blanc Porcelaine','#F2F1ED',"Céramique, minimalisme, fond de carte."],
+ ['Blanc Nacré','#F5EFEF',"Léger reflet rosé, beauté, luxe discret."],
+ ['Blanc Glacier','#EEF3F5',"Dominante bleutée, tech, fraîcheur."],
+ ['Blanc Opalin','#EDEDEB',"Neutre sans dominante, interface sobre."],
+ ['Blanc Lune','#F6F5F2',"Fond nocturne inversé, édition."],
+ ['Blanc Zinc','#EDEEEE',"Froid et minéral, architecture, industriel."]]},
+
+{cle:'gris',nom:'Gris & neutres',repere:'#8E8E8B',intro:"Le squelette d'une identité. Un gris a toujours une température : froid, chaud, ou vraiment neutre.",
+ nuances:[
+ ['Gris Coquille','#F4F4F2',"Fond de page neutre, repos."],
+ ['Gris Perle','#DCDCDA',"Bordures, séparateurs, états inactifs."],
+ ['Gris Ciment','#B8B8B4',"Éléments désactivés, placeholders."],
+ ['Gris Béton','#8E8E8B',"Texte secondaire à la limite de la lisibilité."],
+ ['Gris Souris','#6E6E6B',"Texte secondaire sûr sur fond clair."],
+ ['Anthracite','#3A3A3C',"Texte principal adouci, fond sombre."],
+ ['Gris Ardoise','#4C5359',"Neutre froid, technique, interface."],
+ ['Gris Chaud','#A39E93',"Neutre beigé, accompagne les bruns."],
+ ['Gris Froid','#9AA5AD',"Neutre bleuté, accompagne les bleus."],
+ ['Gris Fumée','#5C6066',"Fond de carte sombre, UI."],
+ ['Gris Lin','#CFCABD',"Neutre chaud clair, papeterie."],
+ ['Étain','#7D8388',"Métal, sobriété, industriel."],
+ ['Gris Perle Froid','#C4C8CB',"Neutre technique, interface froide."],
+ ['Gris Taupe','#9C9284',"Neutre chaud, mobilier."],
+ ['Gris Plomb','#55585C',"Industriel, sérieux, poids visuel."]]},
+
+{cle:'noir',nom:'Noirs & encres',repere:'#14161B',intro:"Il n'existe pas un noir. Chaque noir a une dominante, et c'est elle qui donne le ton.",
+ nuances:[
+ ['Noir Encre','#0B0B0D',"Le noir typographique, très légèrement adouci."],
+ ['Noir Charbon','#1C1C1E',"Fond d'interface sombre, standard."],
+ ['Noir Bleuté','#10141C',"Nuit, tech, profondeur froide."],
+ ['Noir Café','#1A120B',"Chaleur, gastronomie, cuir."],
+ ['Noir Olive','#14170F',"Outdoor, militaire, végétal sombre."],
+ ['Noir Prune','#17101A',"Élégance nocturne, beauté, parfum."],
+ ['Noir Doux','#232326',"Fond de carte sur fond noir, hiérarchie."],
+ ['Noir Suie','#2B2B2B',"Texte fort sans le choc du noir pur."],
+ ['Noir Vert','#0F1613',"Forêt profonde, luxe végétal."],
+ ['Noir Bordeaux','#1B0E12',"Vin, théâtre, intensité contenue."],
+ ['Noir Graphite','#26292E',"Neutre froid sombre, interface."],
+ ['Noir Absolu','#000000',"À réserver à l'écran : illisible d'intention en impression."],
+ ['Noir Encre Bleutée','#0D1321',"Nuit profonde, tech premium."],
+ ['Noir Terreux','#201A14',"Chaleur sombre, bois brûlé."],
+ ['Noir Velours','#14100F',"Luxe, texture, packaging premium."]]}
+];
+
+/* index à plat */
+const slug=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+  .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const TOUTES=[];
+BIBLIO.forEach(f=>f.nuances.forEach(([nom,hex,usage])=>{
+  TOUTES.push({nom,hex,usage,famille:f.nom,familleCle:f.cle,slug:slug(nom)})}));
+
+/* ============================================================
+   3. RENDU
+   ============================================================ */
+const scene=document.getElementById('scene');
+const champ=document.getElementById('q');
+const toast=document.getElementById('toast');
+let minuteur;
+
+function copier(texte){
+  navigator.clipboard?.writeText(texte).then(()=>montrer(texte+' copié'))
+    .catch(()=>montrer('Copie impossible dans ce contexte — sélectionnez la valeur à la main'));
+}
+function montrer(msg){toast.textContent=msg;toast.classList.add('vu');
+  clearTimeout(minuteur);minuteur=setTimeout(()=>toast.classList.remove('vu'),1800)}
+
+function chip(c){
+  const p=profilImpression(c.hex);
+  const ink=encreLisible(c.hex);
+  const alerte=p.ton==='bad'?`<i class="hors" title="Hors gamut CMJN"></i>`:'';
+  return `<a class="chip" href="#/couleur/${c.slug}">
+    <span class="aplat" style="background:${c.hex}">${alerte}<span class="code" style="color:${ink}">${c.hex}</span></span>
+    <span class="nom">${c.nom}</span>
+    <span class="meta">${c.hex}</span></a>`;
+}
+
+function vueAccueil(filtre=''){
+  document.documentElement.style.setProperty('--accent','#14161B');
+  const f=filtre.trim().toLowerCase();
+  let corps='';
+  if(f){
+    const trouve=TOUTES.filter(c=>c.nom.toLowerCase().includes(f)||c.hex.toLowerCase().includes(f)
+      ||c.famille.toLowerCase().includes(f));
+    corps=trouve.length
+      ? `<section class="famille"><div class="entete-famille"><h2>${trouve.length} résultat${trouve.length>1?'s':''}</h2>
+         <em>Recherche : « ${filtre} »</em></div><div class="grille">${trouve.map(chip).join('')}</div></section>`
+      : `<p class="vide">Aucune couleur ne correspond à « ${filtre} ». Essayez un nom de famille (rouge, sauge) ou un code hex.</p>`;
+  } else {
+    corps=BIBLIO.map(fam=>`
+      <section class="famille" id="fam-${fam.cle}">
+        <div class="entete-famille"><h2>${fam.nom}</h2><em>${fam.intro}</em></div>
+        <div class="grille">${fam.nuances.map(([nom,hex,usage])=>
+          chip({nom,hex,usage,slug:slug(nom)})).join('')}</div>
+      </section>`).join('');
+  }
+  const horsGamut=TOUTES.filter(c=>profilImpression(c.hex).ton==='bad').length;
+  scene.innerHTML=`
+    <header class="intro">
+      <h1>Une couleur ne vaut que par ce qu'elle devient.</h1>
+      <p>${TOUTES.length} nuances rangées par famille, avec leurs conversions, leurs déclinaisons,
+      leurs harmonies — et une épreuve d'impression pour chacune. Survolez une pastille pour lire son code,
+      cliquez pour ouvrir sa fiche.</p>
+      <div class="chiffres">
+        <div class="chiffre"><b>${TOUTES.length}</b><span>nuances</span></div>
+        <div class="chiffre"><b>${BIBLIO.length}</b><span>familles</span></div>
+        <div class="chiffre"><b>${horsGamut}</b><span>hors gamut CMJN</span></div>
+        <div class="chiffre"><b>6</b><span>espaces colorimétriques</span></div>
+      </div>
+    </header>${corps}`;
+  window.scrollTo(0,0);
+}
+
+function bande(liste,paliers){
+  return `<div class="bande ${paliers?'avec-palier':''}">${liste.map((x)=>{
+    const hex=paliers?x.hex:x;const lg=paliers?x.label:hex;const ink=encreLisible(hex);
+    return `<button data-copie="${hex}" style="background:${hex}" title="${hex}"><span style="color:${ink}">${lg}</span></button>`
+  }).join('')}</div>`;
+}
+
+function vueFiche(sl){
+  const c=TOUTES.find(x=>x.slug===sl);
+  if(!c)return vueAccueil();
+  const f=formats(c.hex),p=profilImpression(c.hex),ink=encreLisible(c.hex);
+  document.documentElement.style.setProperty('--accent',c.hex);
+  document.documentElement.style.setProperty('--accent-ink',ink);
+
+  const carte=(cle,val,note)=>`<button class="valeur" data-copie="${val}">
+    <dt>${cle}</dt><dd>${val}</dd>${note?`<small>${note}</small>`:''}</button>`;
+
+  const cW=contrast(c.hex,'#FFFFFF'),cB=contrast(c.hex,'#0B0C0E');
+  const jugement=r=>r>=7?['AAA','ok']:r>=4.5?['AA','ok']:r>=3?['AA large','ok']:['Insuffisant','no'];
+  const paire=(fond,texte,ratio,lg)=>{const[t,cl]=jugement(ratio);
+    return `<div class="paire"><div class="demo" style="background:${fond};color:${texte}">${lg}</div>
+      <div class="note"><span>${round(ratio,2)}:1</span><span class="tag ${cl}">${t}</span></div></div>`};
+
+  const proches=TOUTES.filter(x=>x.slug!==c.slug)
+    .map(x=>{const a=rgbToOklch(...Object.values(hexToRgb(c.hex))),b=rgbToOklch(...Object.values(hexToRgb(x.hex)));
+      const dh=Math.min(Math.abs(a.h-b.h),360-Math.abs(a.h-b.h))/180;
+      return{...x,d:Math.hypot((a.l-b.l)*1.4,(a.c-b.c)*3,dh*0.9)}})
+    .sort((x,y)=>x.d-y.d).slice(0,8);
+
+  scene.innerHTML=`
+  <header class="fiche-tete" style="background:${c.hex}">
+    <a class="retour" href="#/">← Bibliothèque</a>
+    <div class="fam">${c.famille}</div>
+    <h1>${c.nom}</h1>
+    <button class="gros-code" data-copie="${f.hex}" style="color:inherit">${f.hex} ⧉</button>
+    <p class="usage">${c.usage}</p>
+  </header>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>Valeurs de base</h2><span>6 espaces</span></div>
+    <p class="sous">Cliquez sur une valeur pour la copier. Les valeurs CMJN sont une séparation théorique :
+    votre imprimeur travaillera à partir du profil ICC du papier retenu.</p>
+    <div class="valeurs">
+      ${carte('Hex',f.hex,'Web, Figma, Illustrator')}
+      ${carte('RGB',f.rgb,'Écran, vidéo, export numérique')}
+      ${carte('CMJN',f.cmyk,'Impression quadri — indicatif')}
+      ${carte('HSL',f.hsl,'Teinte / saturation / clarté')}
+      ${carte('HSV',f.hsv,'Sélecteurs de couleur, retouche')}
+      ${carte('OKLCH',f.css.oklch,'CSS moderne — dégradés perceptuellement réguliers')}
+    </div>
+  </section>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>Variations</h2><span>6 déclinaisons</span></div>
+    <p class="sous">De quoi construire une échelle complète à partir d'une seule couleur.</p>
+    <div class="variation"><h3>Échelle Tailwind — 50 → 950</h3>${bande(echelleTailwind(c.hex),true)}</div>
+    <div class="variation"><h3>Ombres — vers le noir</h3>${bande(rampe(c.hex,'ombres'))}</div>
+    <div class="variation"><h3>Teintes claires — vers le blanc</h3>${bande(rampe(c.hex,'claires'))}</div>
+    <div class="variation"><h3>Saturation — de 0 % à 100 %</h3>${bande(rampe(c.hex,'saturation'))}</div>
+    <div class="variation"><h3>Teintes voisines — ±45° sur le cercle</h3>${bande(rampe(c.hex,'voisines'))}</div>
+    <div class="variation"><h3>Tons — vers le gris moyen</h3>${bande(rampe(c.hex,'tons'))}</div>
+  </section>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>Harmonies</h2><span>9 combinaisons</span></div>
+    <p class="sous">Points de départ, pas des règles. Une palette gagne presque toujours à garder
+    une couleur dominante et à réserver les autres aux accents.</p>
+    <div class="harmonies">
+      ${harmonies(c.hex).map(h=>`<article class="harmonie">
+        <div class="duo">${h.colors.map(x=>
+          `<button data-copie="${x}" style="background:${x}" title="${x}"><span style="color:${encreLisible(x)}">${x}</span></button>`).join('')}</div>
+        <div class="txt"><h4>${h.nom}</h4><p>${h.desc}</p></div></article>`).join('')}
+    </div>
+  </section>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>Épreuve d'impression</h2><span>simulation</span></div>
+    <p class="sous">Estimation du rendu en offset quadri par rapport au gamut d'une presse couchée
+    de référence. À titre indicatif : seule une épreuve contractuelle fait foi.</p>
+    <div class="epreuve">
+      <div>
+        <div class="papiers">
+          <div class="papier"><div class="ap" style="background:${c.hex}"></div>
+            <div class="lg"><b>Écran</b><code>${f.hex}</code>
+            <em>sRGB, rétroéclairé. Le point de départ.</em></div></div>
+          <div class="papier"><div class="ap" style="background:${p.couche}"></div>
+            <div class="lg"><b>Papier couché</b><code>${p.couche}</code>
+            <em>Surface lisse, encre en surface. Rendu le plus proche de l'écran.</em></div></div>
+          <div class="papier"><div class="ap" style="background:${p.nonCouche}"></div>
+            <div class="lg"><b>Papier non couché</b><code>${p.nonCouche}</code>
+            <em>La fibre absorbe l'encre : plus mat, plus sourd, ~20 % de saturation en moins.</em></div></div>
+        </div>
+      </div>
+      <div class="verdict">
+        <span class="badge ${p.ton}">${p.verdict}</span>
+        <p>${p.resume}</p>
+        <div class="jauge">
+          <div class="lg"><span>Encrage total</span><span>${p.tac} % / 300 % max</span></div>
+          <div class="piste"><i style="width:${clamp(p.tac/400)*100}%"></i></div>
+        </div>
+        <ul class="conseils">${p.conseils.map(x=>`<li>${x}</li>`).join('')}</ul>
+        ${p.alternative?`<div class="remplacement">
+          <div class="pave" style="background:${p.alternative}"></div>
+          <div><b>Équivalent imprimable</b>
+          <code>${p.alternative} · écart de ${p.ecart} %</code></div>
+          <button class="valeur" style="margin-left:auto;padding:8px 12px" data-copie="${p.alternative}">Copier</button>
+        </div>`:''}
+      </div>
+    </div>
+  </section>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>Lisibilité</h2><span>WCAG 2.1</span></div>
+    <p class="sous">Rapports de contraste pour du texte. AA demande 4,5:1 en corps de texte, 3:1 à partir de 24 px.</p>
+    <div class="contrastes">
+      ${paire(c.hex,'#FFFFFF',cW,'Texte blanc sur la couleur')}
+      ${paire(c.hex,'#0B0C0E',cB,'Texte noir sur la couleur')}
+      ${paire('#FFFFFF',c.hex,cW,'La couleur sur blanc')}
+      ${paire('#0B0C0E',c.hex,cB,'La couleur sur noir')}
+    </div>
+  </section>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>Nuances proches</h2><span>dans la bibliothèque</span></div>
+    <p class="sous">Classées par distance perceptuelle en OKLCH, pas par proximité de code hex.</p>
+    <div class="proches">${proches.map(chip).join('')}</div>
+  </section>`;
+  window.scrollTo(0,0);
+}
+
+/* ---------- agencement de la grille ---------- */
+let agencementActif='5';
+function largeurCase(pref,largeurDispo){
+  const min=150,ecart=14;
+  const maxParLargeur=Math.max(2,Math.floor((largeurDispo+ecart)/(min+ecart)));
+  return Math.min(Number(pref),maxParLargeur);
+}
+function appliquerAgencement(){
+  document.querySelectorAll('.grille').forEach(g=>{
+    if(agencementActif==='bento'){
+      g.classList.add('bento');g.style.removeProperty('--cols');
+    } else {
+      g.classList.remove('bento');
+      const largeur=g.clientWidth||g.parentElement?.clientWidth||900;
+      g.style.setProperty('--cols',largeurCase(agencementActif,largeur));
+    }
+  });
+}
+document.getElementById('agencement-boutons').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  agencementActif=b.dataset.cols;
+  document.querySelectorAll('#agencement-boutons button').forEach(x=>x.classList.toggle('actif',x===b));
+  appliquerAgencement();
+});
+let redim;
+window.addEventListener('resize',()=>{clearTimeout(redim);redim=setTimeout(appliquerAgencement,120)});
+
+/* ---------- navigation ---------- */
+function railFamilles(actif){
+  document.getElementById('nav-familles').innerHTML=BIBLIO.map(f=>
+    `<li><a href="#/#fam-${f.cle}" data-fam="${f.cle}" class="${actif===f.cle?'actif':''}">
+      <i class="pastille" style="background:${f.repere}"></i>${f.nom}
+      <b class="compte">${f.nuances.length}</b></a></li>`).join('');
+}
+railFamilles();
+
+document.getElementById('nav-familles').addEventListener('click',e=>{
+  const a=e.target.closest('a');if(!a)return;
+  e.preventDefault();
+  const cible=a.dataset.fam;
+  if(!document.getElementById('fam-'+cible)){
+    champ.value='';
+    if(location.hash.startsWith('#/couleur/'))history.replaceState(null,'','#/');
+    vueAccueil('');
+  }
+  requestAnimationFrame(()=>aller(cible));
+});
+function aller(cle){
+  const el=document.getElementById('fam-'+cle);
+  if(el)el.scrollIntoView({block:'start'});
+  railFamilles(cle);
+}
+
+function router(){
+  const h=location.hash;
+  if(h.startsWith('#/couleur/')){vueFiche(h.replace('#/couleur/',''));railFamilles()}
+  else{vueAccueil(champ.value);railFamilles()}
+}
+window.addEventListener('hashchange',router);
+
+champ.addEventListener('input',()=>{
+  if(location.hash.startsWith('#/couleur/')){location.hash='#/';return}
+  vueAccueil(champ.value);
+});
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-copie]');
+  if(b){e.preventDefault();copier(b.dataset.copie)}
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&document.activeElement!==champ){e.preventDefault();champ.focus();champ.select()}
+  if(e.key==='Escape'){
+    if(document.activeElement===champ&&champ.value){champ.value='';vueAccueil()}
+    else if(location.hash.startsWith('#/couleur/'))location.hash='#/';
+  }
+});
+
+/* mise en évidence de la famille visible */
+const observateur=new IntersectionObserver(entrees=>{
+  if(location.hash.startsWith('#/couleur/'))return;
+  const vue=entrees.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];
+  if(vue)railFamilles(vue.target.id.replace('fam-',''));
+},{rootMargin:'-15% 0px -70% 0px'});
+function observer(){document.querySelectorAll('.famille[id]').forEach(s=>observateur.observe(s))}
+const _accueil=vueAccueil;
+vueAccueil=function(...a){_accueil.apply(this,a);observer();appliquerAgencement()};
+
+router();
+</script>
+</body>
+</html>
