@@ -93,15 +93,16 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
 
 /* ---------- agencement Bento ---------- */
 .grille.bento{grid-template-columns:repeat(6,1fr);grid-auto-rows:74px;grid-auto-flow:dense;gap:14px}
-.grille.bento .chip{height:100%;display:flex;flex-direction:column;grid-row:span 2}
-.grille.bento .chip .aplat{flex:1;height:auto;min-height:0}
-.grille.bento .chip .nom{margin-top:8px}
-.grille.bento .chip:nth-child(11n+1){grid-column:span 2;grid-row:span 3}
-.grille.bento .chip:nth-child(11n+6){grid-row:span 3}
-.grille.bento .chip:nth-child(11n+9){grid-column:span 2;grid-row:span 2}
+.grille.bento .chip-wrap{height:100%;grid-row:span 2}
+.grille.bento .chip-wrap .chip{height:100%;display:flex;flex-direction:column}
+.grille.bento .chip-wrap .aplat{flex:1;height:auto;min-height:0}
+.grille.bento .chip-wrap .nom{margin-top:8px}
+.grille.bento .chip-wrap:nth-child(11n+1){grid-column:span 2;grid-row:span 3}
+.grille.bento .chip-wrap:nth-child(11n+6){grid-row:span 3}
+.grille.bento .chip-wrap:nth-child(11n+9){grid-column:span 2;grid-row:span 2}
 @media (max-width:1180px){.grille.bento{grid-template-columns:repeat(4,1fr)}}
 @media (max-width:700px){.grille.bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:64px}
-  .grille.bento .chip:nth-child(11n+1),.grille.bento .chip:nth-child(11n+9){grid-column:span 2}}
+  .grille.bento .chip-wrap:nth-child(11n+1),.grille.bento .chip-wrap:nth-child(11n+9){grid-column:span 2}}
 
 /* ---------- pastille de couleur (signature) ---------- */
 .chip{display:block;text-align:left;width:100%}
@@ -123,6 +124,40 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
 .chip .meta{display:block;font-family:var(--mono);font-size:10.5px;color:var(--calage);margin-top:2px}
 .chip .hors{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;
   background:#fff;box-shadow:0 0 0 1.5px rgba(20,22,27,.55)}
+
+.chip-wrap{position:relative}
+.comparer-toggle{position:absolute;top:7px;left:7px;width:21px;height:21px;border-radius:50%;
+  background:rgba(255,255,255,.9);color:#14161B;font-family:var(--mono);font-size:12px;line-height:1;
+  display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,background .15s,color .15s;
+  z-index:2;box-shadow:0 0 0 1px rgba(20,22,27,.15)}
+.chip-wrap:hover .comparer-toggle,.comparer-toggle:focus-visible,.comparer-toggle.actif{opacity:1}
+.comparer-toggle.actif{background:var(--encre);color:var(--papier)}
+
+/* ---------- filtres ---------- */
+.filtres{display:flex;flex-direction:column;gap:10px}
+.filtres select{width:100%;font-family:var(--mono);font-size:12px;padding:8px 10px;
+  border:1px solid var(--trait);border-radius:2px;background:#fff;color:var(--encre)}
+.filtre-check{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#3B3E44}
+.filtre-check input{accent-color:var(--encre)}
+.filtre-lum-lg{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--calage);margin-bottom:4px}
+.filtre-lum input[type=range]{width:100%;accent-color:var(--encre);display:block}
+.filtre-reset{font-size:11.5px;color:var(--calage);text-decoration:underline;align-self:flex-start}
+.filtre-reset:hover{color:var(--encre)}
+
+/* ---------- plateau de comparaison ---------- */
+#tray{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;
+  border:1px solid var(--trait);border-radius:4px;padding:10px 14px;display:flex;align-items:center;
+  gap:12px;box-shadow:0 12px 30px -12px rgba(20,22,27,.4);z-index:60}
+.tray-swatches{display:flex;gap:4px}
+.tray-swatches i{width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(20,22,27,.15)}
+.tray-compte{font-family:var(--mono);font-size:11.5px;color:var(--calage);white-space:nowrap}
+.tray-btn{font-family:var(--mono);font-size:11.5px;padding:7px 12px;border:1px solid var(--trait);
+  border-radius:2px;background:#fff}
+.tray-btn:hover{background:var(--papier-2)}
+.tray-btn-principal{background:var(--encre);color:var(--papier);border-color:var(--encre)}
+.tray-btn-principal:disabled{opacity:.4;cursor:not-allowed}
+.tray-btn-principal:not(:disabled):hover{opacity:.9}
 
 /* ---------- fiche ---------- */
 .fiche-tete{position:relative;min-height:340px;display:flex;flex-direction:column;justify-content:flex-end;
@@ -175,7 +210,10 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
 .epreuve{display:grid;gap:26px;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start}
 .papiers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .papier{border:1px solid var(--trait);border-radius:2px;background:#fff;overflow:hidden}
-.papier .ap{height:118px;isolation:isolate}
+.papier .ap{height:118px;isolation:isolate;position:relative}
+.papier .ap .code{position:absolute;inset:auto 0 0 0;padding:8px 9px;font-family:var(--mono);font-size:12px;
+  font-weight:600;opacity:0;transform:translateY(4px);transition:opacity .15s,transform .15s;letter-spacing:.02em}
+.papier .ap:hover .code{opacity:1;transform:none}
 .papier .lg{padding:10px 12px}
 .papier b{display:block;font-size:12.5px}
 .papier code{font-family:var(--mono);font-size:11px;color:var(--calage)}
@@ -239,7 +277,8 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
 }
 /* sans survol (tactile), les codes restent lisibles en permanence */
 @media (hover:none){
-  .chip .code,.bande button span,.harmonie .duo button span{opacity:1;transform:none}
+  .chip .code,.bande button span,.harmonie .duo button span,.papier .ap .code{opacity:1;transform:none}
+  .comparer-toggle{opacity:1}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}
   html{scroll-behavior:auto}}
@@ -262,6 +301,17 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
         <button data-cols="6">6</button>
         <button data-cols="bento">Bento</button>
       </div>
+    </div>
+    <div class="filtres" role="group" aria-label="Filtres avancés">
+      <span class="agencement-label">Filtres</span>
+      <select id="filtre-famille" aria-label="Filtrer par famille"><option value="">Toutes les familles</option></select>
+      <label class="filtre-check"><input type="checkbox" id="filtre-gamut"> Hors gamut CMJN uniquement</label>
+      <div class="filtre-lum">
+        <div class="filtre-lum-lg"><span>Luminosité OKLCH</span><span id="filtre-lum-val">0–100 %</span></div>
+        <input type="range" id="filtre-lmin" min="0" max="100" value="0" step="1" aria-label="Luminosité minimum">
+        <input type="range" id="filtre-lmax" min="0" max="100" value="100" step="1" aria-label="Luminosité maximum">
+      </div>
+      <button type="button" id="filtre-reset" class="filtre-reset">Réinitialiser les filtres</button>
     </div>
     <ul class="familles" id="nav-familles"></ul>
     <footer>
@@ -660,11 +710,20 @@ const BIBLIO=[
 ];
 
 /* index à plat */
-const slug=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
-  .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const normaliser=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const slug=s=>normaliser(s).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const TOUTES=[];
 BIBLIO.forEach(f=>f.nuances.forEach(([nom,hex,usage])=>{
   TOUTES.push({nom,hex,usage,famille:f.nom,familleCle:f.cle,slug:slug(nom)})}));
+
+/* precalcul : evite de refaire les conversions a chaque rendu */
+TOUTES.forEach(c=>{
+  const rgb=hexToRgb(c.hex);
+  c.rgb=rgb;
+  c.lch=rgbToOklch(rgb.r,rgb.g,rgb.b);
+  c.impression=profilImpression(c.hex);
+  c.ink=encreLisible(c.hex);
+});
 
 /* ============================================================
    3. RENDU
@@ -682,35 +741,59 @@ function montrer(msg){toast.textContent=msg;toast.classList.add('vu');
   clearTimeout(minuteur);minuteur=setTimeout(()=>toast.classList.remove('vu'),1800)}
 
 function chip(c){
-  const p=profilImpression(c.hex);
-  const ink=encreLisible(c.hex);
-  const alerte=p.ton==='bad'?`<i class="hors" title="Hors gamut CMJN"></i>`:'';
-  return `<a class="chip" href="#/couleur/${c.slug}">
-    <span class="aplat" style="background:${c.hex}">${alerte}<span class="code" style="color:${ink}">${c.hex}</span></span>
-    <span class="nom">${c.nom}</span>
-    <span class="meta">${c.hex}</span></a>`;
+  const alerte=c.impression.ton==='bad'?`<i class="hors" title="Hors gamut CMJN"></i>`:'';
+  const coche=compareSelection.includes(c.hex)?'actif':'';
+  return `<div class="chip-wrap">
+    <a class="chip" href="#/couleur/${c.slug}">
+      <span class="aplat" style="background:${c.hex}">${alerte}<span class="code" style="color:${c.ink}">${c.hex}</span></span>
+      <span class="nom">${c.nom}</span>
+      <span class="meta">${c.hex}</span></a>
+    <button type="button" class="comparer-toggle ${coche}" data-compare="${c.hex}"
+      aria-pressed="${coche==='actif'}" aria-label="Ajouter ${c.nom} au comparateur">${coche==='actif'?'✓':'+'}</button>
+  </div>`;
+}
+
+const horsGamutTotal=TOUTES.filter(c=>c.impression.ton==='bad').length;
+
+function filtresActifs(){
+  return !!(filtreEtat.famille||filtreEtat.gamut||filtreEtat.lMin>0||filtreEtat.lMax<100);
 }
 
 function vueAccueil(filtre=''){
+  document.title='Nuancier — bibliothèque de couleurs';
   document.documentElement.style.setProperty('--accent','#14161B');
-  const f=filtre.trim().toLowerCase();
+  const brut=filtre.trim();
+  const fN=normaliser(brut);
+  const actifs=filtresActifs();
   let corps='';
-  if(f){
-    const trouve=TOUTES.filter(c=>c.nom.toLowerCase().includes(f)||c.hex.toLowerCase().includes(f)
-      ||c.famille.toLowerCase().includes(f));
+  if(fN||actifs){
+    const trouve=TOUTES.filter(c=>{
+      const cible=normaliser(c.nom)+' '+c.hex.toLowerCase()+' '+normaliser(c.famille)+' '+normaliser(c.usage);
+      const passeTexte=!fN||cible.includes(fN);
+      const passeFamille=!filtreEtat.famille||c.familleCle===filtreEtat.famille;
+      const passeGamut=!filtreEtat.gamut||c.impression.ton==='bad';
+      const l=c.lch.l*100;
+      const passeLum=l>=filtreEtat.lMin&&l<=filtreEtat.lMax;
+      return passeTexte&&passeFamille&&passeGamut&&passeLum;
+    });
+    const desc=[];
+    if(brut)desc.push(`texte « ${brut} »`);
+    if(filtreEtat.famille)desc.push((BIBLIO.find(x=>x.cle===filtreEtat.famille)||{}).nom);
+    if(filtreEtat.gamut)desc.push('hors gamut CMJN');
+    if(filtreEtat.lMin>0||filtreEtat.lMax<100)desc.push(`luminosité ${filtreEtat.lMin}–${filtreEtat.lMax} %`);
     corps=trouve.length
       ? `<section class="famille"><div class="entete-famille"><h2>${trouve.length} résultat${trouve.length>1?'s':''}</h2>
-         <em>Recherche : « ${filtre} »</em></div><div class="grille">${trouve.map(chip).join('')}</div></section>`
-      : `<p class="vide">Aucune couleur ne correspond à « ${filtre} ». Essayez un nom de famille (rouge, sauge) ou un code hex.</p>`;
+         <em>${desc.join(' · ')}</em></div><div class="grille">${trouve.map(chip).join('')}</div></section>`
+      : `<p class="vide">Aucune couleur ne correspond à ces critères. Essayez un nom de famille (rouge, sauge) ou un code hex.</p>`;
   } else {
-    corps=BIBLIO.map(fam=>`
-      <section class="famille" id="fam-${fam.cle}">
+    corps=BIBLIO.map(fam=>{
+      const items=TOUTES.filter(c=>c.familleCle===fam.cle);
+      return `<section class="famille" id="fam-${fam.cle}">
         <div class="entete-famille"><h2>${fam.nom}</h2><em>${fam.intro}</em></div>
-        <div class="grille">${fam.nuances.map(([nom,hex,usage])=>
-          chip({nom,hex,usage,slug:slug(nom)})).join('')}</div>
-      </section>`).join('');
+        <div class="grille">${items.map(chip).join('')}</div>
+      </section>`;
+    }).join('');
   }
-  const horsGamut=TOUTES.filter(c=>profilImpression(c.hex).ton==='bad').length;
   scene.innerHTML=`
     <header class="intro">
       <h1>Une couleur ne vaut que par ce qu'elle devient.</h1>
@@ -720,7 +803,7 @@ function vueAccueil(filtre=''){
       <div class="chiffres">
         <div class="chiffre"><b>${TOUTES.length}</b><span>nuances</span></div>
         <div class="chiffre"><b>${BIBLIO.length}</b><span>familles</span></div>
-        <div class="chiffre"><b>${horsGamut}</b><span>hors gamut CMJN</span></div>
+        <div class="chiffre"><b>${horsGamutTotal}</b><span>hors gamut CMJN</span></div>
         <div class="chiffre"><b>6</b><span>espaces colorimétriques</span></div>
       </div>
     </header>${corps}`;
@@ -737,7 +820,8 @@ function bande(liste,paliers){
 function vueFiche(sl){
   const c=TOUTES.find(x=>x.slug===sl);
   if(!c)return vueAccueil();
-  const f=formats(c.hex),p=profilImpression(c.hex),ink=encreLisible(c.hex);
+  const f=formats(c.hex),p=c.impression,ink=c.ink;
+  document.title=`${c.nom} - ${f.hex}`;
   document.documentElement.style.setProperty('--accent',c.hex);
   document.documentElement.style.setProperty('--accent-ink',ink);
 
@@ -751,14 +835,13 @@ function vueFiche(sl){
       <div class="note"><span>${round(ratio,2)}:1</span><span class="tag ${cl}">${t}</span></div></div>`};
 
   const proches=TOUTES.filter(x=>x.slug!==c.slug)
-    .map(x=>{const a=rgbToOklch(...Object.values(hexToRgb(c.hex))),b=rgbToOklch(...Object.values(hexToRgb(x.hex)));
-      const dh=Math.min(Math.abs(a.h-b.h),360-Math.abs(a.h-b.h))/180;
-      return{...x,d:Math.hypot((a.l-b.l)*1.4,(a.c-b.c)*3,dh*0.9)}})
+    .map(x=>{const dh=Math.min(Math.abs(c.lch.h-x.lch.h),360-Math.abs(c.lch.h-x.lch.h))/180;
+      return{...x,d:Math.hypot((c.lch.l-x.lch.l)*1.4,(c.lch.c-x.lch.c)*3,dh*0.9)}})
     .sort((x,y)=>x.d-y.d).slice(0,8);
 
   scene.innerHTML=`
   <header class="fiche-tete" style="background:${c.hex}">
-    <a class="retour" href="#/">← Bibliothèque</a>
+    <button type="button" class="retour" data-precedent>← Précédent</button>
     <div class="fam">${c.famille}</div>
     <h1>${c.nom}</h1>
     <button class="gros-code" data-copie="${f.hex}" style="color:inherit">${f.hex} ⧉</button>
@@ -809,13 +892,13 @@ function vueFiche(sl){
     <div class="epreuve">
       <div>
         <div class="papiers">
-          <div class="papier"><div class="ap" style="background:${c.hex}"></div>
+          <div class="papier"><div class="ap" style="background:${c.hex}"><span class="code" style="color:${ink}">${f.hex}</span></div>
             <div class="lg"><b>Écran</b><code>${f.hex}</code>
             <em>sRGB, rétroéclairé. Le point de départ.</em></div></div>
-          <div class="papier"><div class="ap" style="background:${p.couche}"></div>
+          <div class="papier"><div class="ap" style="background:${p.couche}"><span class="code" style="color:${encreLisible(p.couche)}">${p.couche}</span></div>
             <div class="lg"><b>Papier couché</b><code>${p.couche}</code>
             <em>Surface lisse, encre en surface. Rendu le plus proche de l'écran.</em></div></div>
-          <div class="papier"><div class="ap" style="background:${p.nonCouche}"></div>
+          <div class="papier"><div class="ap" style="background:${p.nonCouche}"><span class="code" style="color:${encreLisible(p.nonCouche)}">${p.nonCouche}</span></div>
             <div class="lg"><b>Papier non couché</b><code>${p.nonCouche}</code>
             <em>La fibre absorbe l'encre : plus mat, plus sourd, ~20 % de saturation en moins.</em></div></div>
         </div>
@@ -853,6 +936,70 @@ function vueFiche(sl){
     <div class="titre-bloc"><h2>Nuances proches</h2><span>dans la bibliothèque</span></div>
     <p class="sous">Classées par distance perceptuelle en OKLCH, pas par proximité de code hex.</p>
     <div class="proches">${proches.map(chip).join('')}</div>
+  </section>`;
+  window.scrollTo(0,0);
+}
+
+/* ---------- comparateur ---------- */
+function vueComparateur(param){
+  const hexes=[...new Set((param||'').split(',').map(h=>h.trim().toUpperCase()).filter(Boolean))].slice(0,3);
+  const items=hexes.map(h=>TOUTES.find(x=>x.hex.toUpperCase()===h)).filter(Boolean);
+  if(items.length<2){location.hash='#/';return}
+  document.title=`Comparateur — ${items.map(i=>i.nom).join(' / ')}`;
+  document.documentElement.style.setProperty('--accent','#14161B');
+
+  const pairs=[];
+  for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++)pairs.push([items[i],items[j]]);
+
+  const deltaOklch=(a,b)=>{
+    const dl=(a.lch.l-b.lch.l)*100,dc=(a.lch.c-b.lch.c)*100;
+    let dh=Math.abs(a.lch.h-b.lch.h);dh=Math.min(dh,360-dh);
+    return Math.hypot(dl,dc,dh*0.35);
+  };
+  const lireDelta=d=>d<4?['Quasi identiques','ok']:d<14?['Proches','ok']:d<30?['Distinctes','no']:['Très différentes','no'];
+
+  scene.innerHTML=`
+  <header class="intro" style="padding-bottom:30px">
+    <button type="button" class="retour" data-precedent style="position:static;display:inline-flex;margin-bottom:18px">← Précédent</button>
+    <h1 style="font-size:clamp(30px,4.5vw,52px)">Comparateur</h1>
+    <p>${items.length} couleurs comparées deux à deux : contraste croisé (WCAG) et écart perceptuel (OKLCH).</p>
+  </header>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>Couleurs sélectionnées</h2><span>${items.length}</span></div>
+    <div class="papiers" style="grid-template-columns:repeat(${items.length},1fr)">
+      ${items.map(c=>`<div class="papier"><a class="ap" href="#/couleur/${c.slug}" style="background:${c.hex};display:block">
+        <span class="code" style="color:${c.ink}">${c.hex}</span></a>
+        <div class="lg"><b>${c.nom}</b><code>${c.famille}</code></div></div>`).join('')}
+    </div>
+  </section>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>Contraste croisé</h2><span>WCAG 2.1</span></div>
+    <p class="sous">Rapport de contraste si l'une sert de texte sur l'autre en fond.</p>
+    <div class="contrastes">
+      ${pairs.map(([a,b])=>{
+        const r=contrast(a.hex,b.hex);
+        const t=r>=7?'AAA':r>=4.5?'AA':r>=3?'AA large':'Insuffisant';
+        const cl=r>=3?'ok':'no';
+        return `<div class="paire"><div class="demo" style="background:${b.hex};color:${a.hex}">${a.nom} sur ${b.nom}</div>
+          <div class="note"><span>${round(r,2)}:1</span><span class="tag ${cl}">${t}</span></div></div>`;
+      }).join('')}
+    </div>
+  </section>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>Écart perceptuel</h2><span>OKLCH</span></div>
+    <p class="sous">Distance approximative en clarté, chroma et teinte — plus le nombre est bas,
+    plus les couleurs sont proches à l'œil.</p>
+    <div class="contrastes">
+      ${pairs.map(([a,b])=>{
+        const d=deltaOklch(a,b);const[t,cl]=lireDelta(d);
+        return `<div class="paire"><div class="demo" style="background:${a.hex}">
+          <span style="color:${a.ink}">${a.nom}</span></div>
+          <div class="note"><span>Δ ${round(d,1)} vs ${b.nom}</span><span class="tag ${cl}">${t}</span></div></div>`;
+      }).join('')}
+    </div>
   </section>`;
   window.scrollTo(0,0);
 }
@@ -910,19 +1057,109 @@ function aller(cle){
   railFamilles(cle);
 }
 
+/* ---------- comparateur : sélection et plateau ---------- */
+let compareSelection=[];
+function toggleComparaison(hex){
+  const i=compareSelection.indexOf(hex);
+  if(i>-1){compareSelection.splice(i,1)}
+  else{
+    if(compareSelection.length>=3){montrer('Comparateur limité à 3 couleurs');return}
+    compareSelection.push(hex);
+  }
+  document.querySelectorAll(`[data-compare="${hex}"]`).forEach(b=>{
+    const actif=compareSelection.includes(hex);
+    b.classList.toggle('actif',actif);
+    b.textContent=actif?'✓':'+';
+    b.setAttribute('aria-pressed',actif);
+  });
+  renderTray();
+}
+function renderTray(){
+  let tray=document.getElementById('tray');
+  if(!compareSelection.length){tray?.remove();return}
+  if(!tray){tray=document.createElement('div');tray.id='tray';document.body.appendChild(tray)}
+  tray.innerHTML=`<div class="tray-swatches">${compareSelection.map(h=>`<i style="background:${h}" title="${h}"></i>`).join('')}</div>
+    <span class="tray-compte">${compareSelection.length} sélectionnée${compareSelection.length>1?'s':''}</span>
+    <button type="button" class="tray-btn" id="tray-vider">Vider</button>
+    <button type="button" class="tray-btn tray-btn-principal" id="tray-comparer" ${compareSelection.length<2?'disabled':''}>Comparer</button>`;
+}
+function viderComparaison(){
+  compareSelection=[];
+  document.querySelectorAll('.comparer-toggle.actif').forEach(b=>{
+    b.classList.remove('actif');b.textContent='+';b.setAttribute('aria-pressed','false');
+  });
+  renderTray();
+}
+
+/* ---------- filtres combinés ---------- */
+function remplirFiltreFamille(){
+  const sel=document.getElementById('filtre-famille');
+  sel.innerHTML='<option value="">Toutes les familles</option>'+
+    BIBLIO.map(f=>`<option value="${f.cle}">${f.nom}</option>`).join('');
+}
+remplirFiltreFamille();
+const filtreEtat={famille:'',gamut:false,lMin:0,lMax:100};
+const filtreFamilleEl=document.getElementById('filtre-famille');
+const filtreGamutEl=document.getElementById('filtre-gamut');
+const filtreLminEl=document.getElementById('filtre-lmin');
+const filtreLmaxEl=document.getElementById('filtre-lmax');
+const filtreLumVal=document.getElementById('filtre-lum-val');
+const filtreResetBtn=document.getElementById('filtre-reset');
+
+function majFiltres(){
+  if(Number(filtreLminEl.value)>Number(filtreLmaxEl.value)){
+    if(document.activeElement===filtreLminEl)filtreLmaxEl.value=filtreLminEl.value;
+    else filtreLminEl.value=filtreLmaxEl.value;
+  }
+  filtreEtat.famille=filtreFamilleEl.value;
+  filtreEtat.gamut=filtreGamutEl.checked;
+  filtreEtat.lMin=Number(filtreLminEl.value);
+  filtreEtat.lMax=Number(filtreLmaxEl.value);
+  filtreLumVal.textContent=`${filtreEtat.lMin}–${filtreEtat.lMax} %`;
+  if(location.hash.startsWith('#/couleur/')||location.hash.startsWith('#/comparer/'))return;
+  vueAccueil(champ.value);
+}
+[filtreFamilleEl,filtreGamutEl,filtreLminEl,filtreLmaxEl].forEach(el=>el.addEventListener('input',majFiltres));
+filtreResetBtn.addEventListener('click',()=>{
+  filtreFamilleEl.value='';filtreGamutEl.checked=false;filtreLminEl.value=0;filtreLmaxEl.value=100;
+  majFiltres();
+});
+
+/* ---------- historique de navigation ---------- */
+let pileHistorique=['#/'];
+function precedent(){
+  pileHistorique.pop();
+  const cible=pileHistorique.pop()||'#/';
+  location.hash=cible;
+}
+
 function router(){
-  const h=location.hash;
+  const h=location.hash||'#/';
+  if(pileHistorique[pileHistorique.length-1]!==h){
+    pileHistorique.push(h);
+    if(pileHistorique.length>50)pileHistorique.shift();
+  }
   if(h.startsWith('#/couleur/')){vueFiche(h.replace('#/couleur/',''));railFamilles()}
+  else if(h.startsWith('#/comparer/')){vueComparateur(decodeURIComponent(h.replace('#/comparer/','')));railFamilles()}
   else{vueAccueil(champ.value);railFamilles()}
 }
 window.addEventListener('hashchange',router);
 
 champ.addEventListener('input',()=>{
-  if(location.hash.startsWith('#/couleur/')){location.hash='#/';return}
+  if(location.hash.startsWith('#/couleur/')||location.hash.startsWith('#/comparer/')){location.hash='#/';return}
   vueAccueil(champ.value);
 });
 
 document.addEventListener('click',e=>{
+  if(e.target.id==='tray-vider'){viderComparaison();return}
+  if(e.target.id==='tray-comparer'){
+    if(compareSelection.length>=2)location.hash='#/comparer/'+compareSelection.join(',');
+    return;
+  }
+  const precedentBtn=e.target.closest('[data-precedent]');
+  if(precedentBtn){e.preventDefault();precedent();return}
+  const toggle=e.target.closest('.comparer-toggle');
+  if(toggle){e.preventDefault();e.stopPropagation();toggleComparaison(toggle.dataset.compare);return}
   const b=e.target.closest('[data-copie]');
   if(b){e.preventDefault();copier(b.dataset.copie)}
 });
@@ -931,8 +1168,26 @@ document.addEventListener('keydown',e=>{
   if(e.key==='/'&&document.activeElement!==champ){e.preventDefault();champ.focus();champ.select()}
   if(e.key==='Escape'){
     if(document.activeElement===champ&&champ.value){champ.value='';vueAccueil()}
-    else if(location.hash.startsWith('#/couleur/'))location.hash='#/';
+    else if(location.hash.startsWith('#/couleur/')||location.hash.startsWith('#/comparer/'))precedent();
   }
+});
+
+/* navigation clavier dans les grilles de pastilles */
+document.addEventListener('keydown',e=>{
+  const cur=document.activeElement;
+  if(!(cur instanceof HTMLElement)||!cur.classList.contains('chip'))return;
+  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;
+  const grille=cur.closest('.grille');
+  if(!grille)return;
+  const chips=[...grille.querySelectorAll('.chip')];
+  const idx=chips.indexOf(cur);
+  const cols=getComputedStyle(grille).gridTemplateColumns.split(' ').length||1;
+  let next=idx;
+  if(e.key==='ArrowLeft')next=idx-1;
+  else if(e.key==='ArrowRight')next=idx+1;
+  else if(e.key==='ArrowUp')next=idx-cols;
+  else if(e.key==='ArrowDown')next=idx+cols;
+  if(next>=0&&next<chips.length){e.preventDefault();chips[next].focus()}
 });
 
 /* mise en évidence de la famille visible */
