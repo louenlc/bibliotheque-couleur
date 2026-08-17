@@ -183,6 +183,13 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
 .valeur dd{font-family:var(--mono);font-size:15px;margin-top:5px;word-break:break-word}
 .valeur small{display:block;font-size:11px;color:var(--calage);margin-top:6px;line-height:1.35;font-family:var(--texte)}
 
+/* ---------- notice éditoriale ---------- */
+.edito{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.edito article{border:1px solid var(--trait);border-radius:2px;background:#fff;padding:17px 19px}
+.edito h3{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--calage);margin-bottom:9px}
+.edito p{font-size:13.5px;line-height:1.55;color:#3B3E44}
+.edito p+p{margin-top:9px}
+
 .variation{margin-bottom:30px}
 .variation h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:9px;color:var(--calage)}
 .bande{display:flex;border-radius:2px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(20,22,27,.10)}
@@ -888,6 +895,231 @@ const horsGamutTotal=TOUTES.filter(c=>c.impression.ton==='bad').length;
 const CHROMA_MAX=.37;
 const satPourcent=c=>clamp(c.lch.c/CHROMA_MAX)*100;
 
+/* ============================================================
+   NOTICE ÉDITORIALE
+   Les textes ne sont pas rédigés nuance par nuance : ils se composent
+   à partir de la famille, de la clarté, du chroma, du rang de saturation
+   et du profil d'impression — tous déjà calculés. Chaque affirmation est
+   donc mesurée, et deux nuances voisines ne reçoivent pas la même
+   formulation (la variante est tirée de l'empreinte du code hex).
+   ============================================================ */
+
+/* rang de saturation, global et dans la famille : autorise des affirmations chiffrées */
+[...TOUTES].sort((a,b)=>b.lch.c-a.lch.c).forEach((c,i)=>c.rangSat=i+1);
+BIBLIO.forEach(f=>{
+  const groupe=TOUTES.filter(c=>c.familleCle===f.cle);
+  [...groupe].sort((a,b)=>b.lch.c-a.lch.c)
+    .forEach((c,i)=>{c.rangSatFamille=i+1;c.tailleFamille=groupe.length});
+  // pour les familles neutres, classer par saturation n'a aucun sens : on classe par clarté
+  [...groupe].sort((a,b)=>b.lch.l-a.lch.l).forEach((c,i)=>{c.rangClarteFamille=i+1});
+});
+
+const EDITO_FAMILLE={
+ rouge:{nom:'rouge',plur:'rouges',
+  psy:["capte l'attention avant toute autre couleur du spectre : le regard s'y porte d'abord, puis y revient",
+       "agit comme un signal — il mobilise, presse, et installe un sentiment d'urgence",
+       "stimule l'appétit et le passage à l'acte, ce qui explique sa présence massive dans la restauration et la vente"],
+  sens:["En Occident, le rouge porte simultanément le désir et l'interdit : l'amour et l'alerte, la fête et le danger.",
+        "Couleur du sang et du feu, le rouge symbolise la vie autant que le risque — d'où son double statut de séduction et d'avertissement.",
+        "En Asie de l'Est, le rouge est avant tout une couleur de chance et de prospérité, là où l'Occident y lit surtout l'urgence."],
+  secteurs:['la restauration','le sport','les médias','la culture','la grande distribution','les spiritueux']},
+
+ orange:{nom:'orange',plur:'oranges',
+  psy:["conjugue l'énergie du rouge et la clarté du jaune, sans la violence de l'un ni la fragilité de l'autre",
+       "évoque la chaleur et la convivialité : une énergie plus accueillante que celle du rouge",
+       "attire l'œil très vite tout en restant amical, ce qui en fait une couleur d'appel efficace"],
+  sens:["L'orange est associé à la récolte, au feu domestique et à la fin de journée : une couleur de transition et d'abondance.",
+        "Longtemps désigné par le seul nom du fruit, l'orange reste en Occident une couleur de vitalité populaire plus que de prestige.",
+        "Dans le bouddhisme, la robe safran fait de l'orange une couleur de renoncement et de sagesse, très loin de sa lecture occidentale."],
+  secteurs:['le sport',"l'hôtellerie",'l’alimentaire','la signalétique','les loisirs','le bâtiment']},
+
+ jaune:{nom:'jaune',plur:'jaunes',
+  psy:["est la couleur la plus lumineuse du cercle : elle avance vers le spectateur et éclaire ce qui l'entoure",
+       "évoque l'optimisme et l'éveil, mais fatigue l'œil sur de grandes surfaces",
+       "signale avant de séduire — c'est la couleur de la vigilance autant que de la joie"],
+  sens:["Le jaune est la couleur du soleil et de l'or, donc de la richesse — mais aussi, dans l'histoire européenne, celle de la trahison et de la mise à l'écart.",
+        "Couleur solaire par excellence, le jaune porte l'idée de lumière, de connaissance et de moisson.",
+        "En Chine impériale, le jaune était réservé à l'empereur : une couleur de pouvoir absolu, statut qu'il n'a jamais eu en Europe."],
+  secteurs:['la signalétique',"l'enfance",'l’alimentaire','le sport',"l'énergie",'la papeterie']},
+
+ vert:{nom:'vert',plur:'verts',
+  psy:["est la couleur sur laquelle l'œil se repose le mieux : elle apaise et ralentit la lecture",
+       "évoque la nature et la croissance, mais aussi la permission : il autorise là où le rouge interdit",
+       "installe un sentiment d'équilibre et de sécurité, sans la froideur du bleu"],
+  sens:["Le vert symbolise la nature, le renouveau et l'espoir ; il est aussi devenu le signe visuel de l'engagement écologique.",
+        "Couleur du vivant et de la croissance, le vert porte l'idée de santé, de permission et de recommencement.",
+        "Dans l'islam, le vert est une couleur sacrée liée au paradis, ce qui lui confère une portée symbolique bien plus forte qu'en Occident."],
+  secteurs:["l'écologie",'la santé','l’alimentaire','la finance',"l'outdoor",'le bien-être']},
+
+ turquoise:{nom:'turquoise',plur:'turquoises',
+  psy:["tient de l'eau et de l'écran : il rafraîchit et donne une impression de propreté",
+       "combine le calme du bleu et la vitalité du vert — une fraîcheur active plutôt que reposante",
+       "évoque le soin, l'hygiène et le grand air, avec une pointe de modernité technologique"],
+  sens:["Le turquoise tire son nom de la pierre, longtemps portée comme amulette protectrice, de l'Orient à l'Amérique précolombienne.",
+        "Couleur des lagons et des eaux peu profondes, le turquoise évoque le voyage, la détente et la pureté.",
+        "Chez les peuples du Sud-Ouest américain comme en Perse, la turquoise était une pierre de protection : la couleur en garde une aura bénéfique."],
+  secteurs:['le voyage','la santé','la cosmétique','le nautisme','la tech','le bien-être']},
+
+ bleu:{nom:'bleu',plur:'bleus',
+  psy:["est la couleur la plus consensuelle du spectre : elle rassure et ne heurte personne",
+       "recule visuellement, ce qui le rend précieux en fond et en arrière-plan de lecture",
+       "évoque la fiabilité et le calme — c'est pourquoi banques, institutions et logiciels s'en emparent"],
+  sens:["Longtemps difficile à produire, le bleu est passé du statut de couleur rare à celui de couleur de la confiance et de l'institution.",
+        "Couleur du ciel et de la mer, le bleu porte l'idée d'infini, de constance et de sérénité.",
+        "Le bleu est la couleur la plus employée par les institutions internationales, précisément parce qu'elle est la moins clivante."],
+  secteurs:['la finance','la tech',"l'institution",'la santé',"l'assurance",'le transport']},
+
+ violet:{nom:'violet',plur:'violets',
+  psy:["occupe une position ambiguë entre la chaleur du rouge et la froideur du bleu, ce qui le rend créatif et un peu instable",
+       "évoque l'imaginaire, le spirituel et l'expérimental — il sort volontairement du consensus",
+       "signale la singularité : peu de marques l'emploient, ce qui le rend immédiatement distinctif"],
+  sens:["Le violet fut la couleur la plus coûteuse de l'Antiquité — la pourpre — puis celle du pouvoir religieux et royal.",
+        "Entre rouge et bleu, le violet symbolise la transformation, le mystère et la frontière entre le matériel et le spirituel.",
+        "Dernière couleur du spectre visible avant l'ultraviolet, le violet garde une aura de seuil et d'au-delà."],
+  secteurs:['la culture','la musique','le gaming','la beauté','le luxe','la création']},
+
+ rose:{nom:'rose',plur:'roses',
+  psy:["adoucit tout ce qu'il touche : c'est un rouge désarmé de son agressivité",
+       "évoque la tendresse et le soin, mais gagne en énergie et en insolence dès qu'il se sature",
+       "porte une charge culturelle forte, aujourd'hui largement réinvestie et détournée"],
+  sens:["L'association du rose au féminin est récente et occidentale : elle date du milieu du XXe siècle, et se défait aujourd'hui.",
+        "Le rose symbolise la douceur, l'affection et la jeunesse — un registre que la mode contemporaine retourne volontiers en provocation.",
+        "Longtemps considéré comme une couleur masculine en Europe, le rose montre à quel point les codes de couleur sont des conventions."],
+  secteurs:['la beauté','la mode','la culture','l’alimentaire','la musique',"l'enfance"]},
+
+ marron:{nom:'brun',plur:'bruns',
+  psy:["évoque la matière, la terre et le fait-main : c'est la couleur la moins artificielle du nuancier",
+       "rassure par sa familiarité — il parle de bois, de cuir, de café et de sol",
+       "installe une chaleur sourde, sans l'appel du rouge ni la gaieté de l'orange"],
+  sens:["Le brun est la couleur de la terre et du bois, donc de l'ancrage, de la durabilité et de l'artisanat.",
+        "Longtemps couleur des habits pauvres et des ordres monastiques, le brun est devenu un signe d'authenticité et de sobriété choisie.",
+        "Couleur du sol et de l'écorce, le brun renvoie à la solidité, au temps long et au travail de la matière."],
+  secteurs:["l'artisanat",'le café','la maroquinerie','le mobilier','l’alimentaire',"l'édition"]},
+
+ beige:{nom:'beige',plur:'beiges',
+  psy:["se fait oublier au profit de ce qu'il entoure : c'est une couleur de support plus que d'affirmation",
+       "apporte une chaleur discrète et une impression de matière naturelle, sans jamais dominer",
+       "détend la lecture en remplaçant le blanc pur, souvent trop dur, par une teinte habitée"],
+  sens:["Le beige évoque les matières brutes non teintes — lin, sable, papier — donc la simplicité et le naturel.",
+        "Couleur du non-traité et du non-blanchi, le beige signale aujourd'hui la sobriété et le respect de la matière.",
+        "Neutre chaud, le beige est devenu le fond privilégié d'un design contemporain qui veut paraître calme et coûteux."],
+  secteurs:['le luxe discret','la cosmétique',"l'édition","l'architecture d'intérieur",'la mode','l’alimentaire']},
+
+ blanc:{nom:'blanc',plur:'blancs',
+  psy:["crée de l'espace et de la respiration : il ne se voit pas, il laisse voir",
+       "signale la propreté, la clarté et le vide organisé — le luxe du non-rempli",
+       "n'est jamais réellement neutre : sa moindre dominante colore toute la page"],
+  sens:["En Occident, le blanc dit la pureté et le commencement ; dans plusieurs cultures d'Asie, il est la couleur du deuil.",
+        "Le blanc symbolise la propreté, le vide disponible et le recommencement.",
+        "Couleur de l'absence de pigment, le blanc a longtemps été un signe de richesse : seul un vêtement rarement porté reste blanc."],
+  secteurs:['la santé','la tech',"l'architecture",'le luxe','la papeterie','la cosmétique']},
+
+ gris:{nom:'gris',plur:'gris',
+  psy:["ne prend jamais parti : il structure sans attirer l'œil, ce qui en fait le squelette d'une identité",
+       "évoque la rigueur, la technicité et la retenue — parfois au prix d'une certaine froideur",
+       "sert de médiateur entre les couleurs qu'il sépare, en absorbant leurs tensions"],
+  sens:["Le gris est la couleur de la nuance et de la neutralité, mais aussi de l'incertitude et de l'effacement.",
+        "Couleur du métal, du béton et de la cendre, le gris renvoie à l'industrie, à la durabilité et à la sobriété.",
+        "Entre noir et blanc, le gris symbolise l'entre-deux, la maturité et le refus du tranché."],
+  secteurs:['la tech',"l'industrie","l'architecture",'l’automobile','la finance',"l'édition"]},
+
+ noir:{nom:'noir',plur:'noirs',
+  psy:["concentre le regard et donne du poids à tout ce qui l'entoure : rien n'affirme plus vite",
+       "évoque l'élégance, la rigueur et l'autorité — c'est la couleur du parti pris",
+       "isole ce qu'il encadre, en supprimant tout ce qui pourrait distraire"],
+  sens:["En Occident, le noir dit le deuil, mais aussi l'élégance et le pouvoir, et ce depuis la Renaissance.",
+        "Couleur de la nuit et de l'encre, le noir porte à la fois la gravité, le secret et la sophistication.",
+        "Le noir est passé du registre du deuil à celui du chic absolu, un basculement que la mode du XXe siècle a scellé."],
+  secteurs:['la mode','le luxe','la musique',"l'édition",'la tech','la photographie']}
+};
+
+const bandeClarte=L=>L<.22?'tresSombre':L<.45?'sombre':L<.72?'moyen':L<.87?'clair':'tresClair';
+const bandeChroma=s=>s<8?'neutre':s<25?'desature':s<45?'moyen':s<62?'vif':'extreme';
+const ADJ_L={tresSombre:'très sombre',sombre:'sombre',moyen:'de clarté moyenne',clair:'clair',tresClair:'très clair'};
+const ADJ_C={neutre:'quasi neutre',desature:'peu saturé',moyen:'modérément saturé',vif:'vif',extreme:'extrêmement saturé'};
+const temperature=h=>{const H=((h%360)+360)%360;
+  return(H<105||H>=325)?'chaude':(H>=150&&H<295)?'froide':'tempérée'};
+
+/* empreinte du hex : fait varier la formulation d'une nuance à l'autre */
+const empreinte=hex=>{let n=0;for(let i=1;i<hex.length;i++)n=(n*31+hex.charCodeAt(i))>>>0;return n};
+/* décimale à la française, pour la prose uniquement (les valeurs CSS gardent le point) */
+const nbFr=(v,d=0)=>String(round(v,d)).replace('.',',');
+const tirer=(liste,graine,decalage)=>liste[(graine+decalage)%liste.length];
+const ordinal=n=>n===1?'le plus saturé':`le ${n}ᵉ plus saturé`;
+
+function roleTechnique(bl,bc){
+  if(bc==='neutre'||bc==='desature'){
+    if(bl==='tresClair'||bl==='clair')return"fond de page, surface de carte et séparateur : elle porte les autres couleurs sans leur disputer l'attention";
+    if(bl==='sombre'||bl==='tresSombre')return"fond sombre et texte long : elle tient la lecture sans fatiguer l'œil";
+    return"texte secondaire et éléments d'interface : elle hiérarchise sans colorer";
+  }
+  if(bc==='extreme'||bc==='vif')
+    return"accent ponctuel — bouton, lien, détail signalétique : en aplat large, elle sature vite la composition";
+  if(bl==='tresClair'||bl==='clair')return"aplat de fond coloré et zone de respiration teintée";
+  if(bl==='sombre'||bl==='tresSombre')return"aplat sombre, couverture et typographie de titre";
+  return"couleur principale d'identité : assez présente pour signer, assez tenue pour durer";
+}
+
+function notice(c,cW,cB){
+  const fam=EDITO_FAMILLE[c.familleCle];
+  const g=empreinte(c.hex);
+  const s=satPourcent(c),bl=bandeClarte(c.lch.l),bc=bandeChroma(s);
+  const p=c.impression;
+
+  /* --- Description : purement descriptive, appuyée sur les mesures ---
+     sous 0,02 de chroma la teinte n'a plus de sens : on n'annonce pas de température */
+  const achromatique=c.lch.c<.02;
+  const description=[
+    `${c.nom} est un ${fam.nom} ${ADJ_L[bl]} et ${ADJ_C[bc]}${achromatique?'':`, à dominante ${temperature(c.lch.h)}`}.`,
+    `Sa clarté OKLCH s'établit à ${nbFr(c.lch.l*100)} %, pour un chroma de ${nbFr(c.lch.c,3)} — soit ${nbFr(s)} % sur l'échelle de saturation du nuancier.`
+  ];
+
+  /* --- Psychologie : effet perceptif, modulé par saturation et clarté --- */
+  const psy=[`Le ${fam.nom} ${tirer(fam.psy,g,0)}.`];
+  psy.push({
+    extreme:"Poussé à ce niveau de saturation, l'effet devient franchement sonore : la couleur ne se laisse pas oublier, et sature vite une composition.",
+    vif:"À cette saturation, l'effet est net et assumé : la couleur porte le message plutôt qu'elle ne l'accompagne.",
+    moyen:"Sa saturation moyenne tempère cet effet : elle reste lisible comme couleur, sans imposer sa présence.",
+    desature:"Sa faible saturation en émousse l'intensité : il en reste l'ambiance, plus le signal.",
+    neutre:"Ici la teinte est presque effacée : ce qui agit n'est plus la couleur, mais sa valeur."
+  }[bc]);
+  const modClarte={tresSombre:"Très assombri, il gagne en gravité et en autorité.",
+    sombre:"Assombri, il gagne en gravité et en autorité.",
+    clair:"Éclairci, il devient plus accessible, presque léger.",
+    tresClair:"À cette clarté, il ne subsiste qu'une intention de couleur."}[bl];
+  if(modClarte)psy.push(modClarte);
+
+  /* --- Signification : symbolique culturelle, explicitement située --- */
+  const sens=[tirer(fam.sens,g,1)];
+  const modSens={tresSombre:"Dans cette version très sombre, la lecture se déplace vers le formel et le solennel.",
+    sombre:"Dans cette version sombre, la lecture se déplace vers le sérieux et le formel.",
+    tresClair:"Dans cette version très claire, la symbolique s'allège : la couleur devient presque un support."}[bl];
+  if(modSens)sens.push(modSens);
+
+  /* --- Pourquoi : arguments chiffrés, tirés des mesures de la fiche --- */
+  const meilleur=cW>=cB?'blanc':'noir',ratio=Math.max(cW,cB);
+  /* pour une nuance quasi neutre, un rang de saturation n'aurait aucun sens : on la situe en clarté */
+  const rang=bc==='neutre'
+    ? `C'est ${c.rangClarteFamille===1?'le plus clair':c.rangClarteFamille===c.tailleFamille?'le plus sombre':`le ${c.rangClarteFamille}ᵉ plus clair`} des ${c.tailleFamille} ${fam.plur} de la bibliothèque.`
+    : `C'est ${ordinal(c.rangSatFamille)} des ${c.tailleFamille} ${fam.plur} de la bibliothèque${c.rangSat<=12?`, et ${c.rangSat===1?'la nuance la plus saturée de tout le nuancier':`la ${c.rangSat}ᵉ plus saturée des ${TOUTES.length} nuances`}`:''}.`;
+  const pourquoi=[
+    rang,
+    `Sur un aplat de cette couleur, le texte ${meilleur} donne le meilleur contraste (${nbFr(ratio,2)}:1) — ${ratio>=7?'largement suffisant, jusqu’au niveau AAA':ratio>=4.5?'suffisant pour du corps de texte (AA)':ratio>=3?'à réserver aux grandes tailles (AA large)':'insuffisant pour du texte : à garder pour des surfaces'}.`,
+    `À l'impression, le nuancier la classe « ${p.verdict} », avec un encrage total estimé à ${nbFr(p.tac)} %.`
+  ];
+
+  /* --- Applications : rôle technique, secteurs, contrainte de support --- */
+  const applications=[
+    `Elle est faite pour un usage en ${roleTechnique(bl,bc)}.`,
+    `On la rencontre surtout dans ${tirer(fam.secteurs,g,2)}, ${tirer(fam.secteurs,g,3)} et ${tirer(fam.secteurs,g,5)}.`,
+    p.ton==='bad'?"Hors gamut CMJN : à réserver à l'écran, ou à passer en ton direct si elle doit être imprimée."
+      :p.ton==='warn'?"En quadri, prévoir un affadissement par rapport à l'écran : à valider sur épreuve si elle porte l'identité."
+      :"Elle passe en quadri sans perte notable : utilisable indifféremment à l'écran et au tirage."
+  ];
+
+  return{description,psy,sens,pourquoi,applications};
+}
+
 const filtreEtat={rendu:'',lMin:0,lMax:100,cMin:0,cMax:100};
 const LIBELLE_RENDU={ok:'fidèle en quadri',warn:"écart à l'impression",bad:'hors gamut CMJN'};
 
@@ -1008,6 +1240,21 @@ function vueFiche(sl){
       ${carte('HSV',f.hsv,'Sélecteurs de couleur, retouche')}
       ${carte('OKLCH',f.css.oklch,'CSS moderne — dégradés perceptuellement réguliers')}
     </div>
+  </section>
+
+  <section class="bloc">
+    <div class="titre-bloc"><h2>À propos de cette couleur</h2><span>5 notices</span></div>
+    <p class="sous">Description, effet perçu, symbolique et usages. Les constats chiffrés sont calculés
+    à partir de cette nuance ; les lectures culturelles sont des conventions, pas des règles.</p>
+    ${(()=>{const n=notice(c,cW,cB);
+      const bloc=(titre,paras)=>`<article><h3>${titre}</h3>${paras.map(t=>`<p>${t}</p>`).join('')}</article>`;
+      return `<div class="edito">
+        ${bloc('Description',n.description)}
+        ${bloc('Psychologie',n.psy)}
+        ${bloc('Signification',n.sens)}
+        ${bloc('Pourquoi utiliser cette couleur',n.pourquoi)}
+        ${bloc('Applications',n.applications)}
+      </div>`})()}
   </section>
 
   <section class="bloc">
