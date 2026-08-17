@@ -883,10 +883,21 @@ function vueAccueil(filtre=''){
     if(filtreEtat.rendu)desc.push(LIBELLE_RENDU[filtreEtat.rendu]);
     if(filtreEtat.lMin>0||filtreEtat.lMax<100)desc.push(`luminosité ${filtreEtat.lMin}–${filtreEtat.lMax} %`);
     if(filtreEtat.cMin>0||filtreEtat.cMax<100)desc.push(`saturation ${filtreEtat.cMin}–${filtreEtat.cMax} %`);
-    corps=trouve.length
-      ? `<section class="famille"><div class="entete-famille"><h2>${trouve.length} résultat${trouve.length>1?'s':''}</h2>
-         <em>${desc.join(' · ')}</em></div><div class="grille">${trouve.map(chip).join('')}</div></section>`
-      : `<p class="vide">Aucune couleur ne correspond à ces critères. Essayez un nom de famille (rouge, sauge) ou un code hex.</p>`;
+    if(trouve.length){
+      // regroupées par famille (et non en une seule grille) pour que les teintes
+      // ne se mélangent jamais visuellement d'une ligne à l'autre
+      const parFamille=BIBLIO.map(fam=>({fam,items:trouve.filter(c=>c.familleCle===fam.cle)}))
+        .filter(x=>x.items.length);
+      corps=`<section class="famille"><div class="entete-famille"><h2>${trouve.length} résultat${trouve.length>1?'s':''}</h2>
+        <em>${desc.join(' · ')}</em></div></section>` +
+        parFamille.map(({fam,items})=>`
+          <section class="famille">
+            <div class="entete-famille"><h2>${fam.nom}</h2><em>${items.length} nuance${items.length>1?'s':''}</em></div>
+            <div class="grille">${items.map(chip).join('')}</div>
+          </section>`).join('');
+    } else {
+      corps=`<p class="vide">Aucune couleur ne correspond à ces critères. Essayez un nom de famille (rouge, sauge) ou un code hex.</p>`;
+    }
   } else {
     corps=BIBLIO.map(fam=>{
       const items=TOUTES.filter(c=>c.familleCle===fam.cle);
