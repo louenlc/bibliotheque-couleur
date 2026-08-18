@@ -130,10 +130,11 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
 .chip-wrap:hover .comparer-toggle,.comparer-toggle:focus-visible,.comparer-toggle.actif{opacity:1}
 .comparer-toggle.actif{background:var(--encre);color:var(--papier)}
 
-/* ---------- filtres ---------- */
-.filtres{display:flex;flex-direction:column;gap:10px}
-.filtres select{width:100%;font-family:var(--mono);font-size:12px;padding:8px 10px;
+/* ---------- tri et filtres ---------- */
+.filtres,.tri{display:flex;flex-direction:column;gap:10px}
+.filtres select,.tri select{width:100%;font-family:var(--mono);font-size:12px;padding:8px 10px;
   border:1px solid var(--trait);border-radius:2px;background:#fff;color:var(--encre)}
+.tri button[hidden]{display:none}
 .filtre-check{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#3B3E44}
 .filtre-check input{accent-color:var(--encre)}
 .filtre-lum-lg{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.1em;
@@ -305,6 +306,17 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
         <button data-cols="6">6</button>
         <button data-cols="bento">Bento</button>
       </div>
+    </div>
+    <div class="tri" role="group" aria-label="Ordre d'affichage">
+      <span class="agencement-label">Trier</span>
+      <select id="tri" aria-label="Trier les nuances">
+        <option value="defaut">Ordre du nuancier</option>
+        <option value="aleatoire">Aléatoire</option>
+        <option value="clarte">Luminosité</option>
+        <option value="saturation">Saturation</option>
+        <option value="teinte">Teinte</option>
+      </select>
+      <button type="button" id="tri-rejouer" class="filtre-reset" hidden>↻ Nouveau tirage</button>
     </div>
     <div class="filtres" role="group" aria-label="Filtres avancés">
       <span class="agencement-label">Filtres</span>
@@ -1322,6 +1334,53 @@ function notice(c,cW,cB){
 const filtreEtat={rendu:'',lMin:0,lMax:100,cMin:0,cMax:100};
 const LIBELLE_RENDU={ok:'fidèle en quadri',warn:"écart à l'impression",bad:'hors gamut CMJN'};
 
+/* ---------- tri des nuances ----------
+   Le tri s'applique à l'intérieur de chaque famille : les familles gardent
+   toujours leur ordre, seule la disposition des nuances change. */
+let triActif='defaut';
+let graineTri=Math.floor(Math.random()*1e9);
+
+/* teinte du repère de chaque famille : sert de zéro pour le tri par teinte,
+   sinon les familles à cheval sur 0°/360° (rouges, roses) se couperaient en deux */
+const repereTeinte={};
+BIBLIO.forEach(f=>{const r=hexToRgb(f.repere);repereTeinte[f.cle]=rgbToOklch(r.r,r.g,r.b).h});
+const ecartTeinte=c=>{
+  let d=c.lch.h-(repereTeinte[c.familleCle]||0);
+  while(d>180)d-=360;while(d<-180)d+=360;
+  return d;
+};
+
+function melanger(liste,graine){
+  const rnd=generateur(graine);const a=[...liste];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+
+/* familles dont la teinte n'est pas un critère lisible : à ce niveau de chroma,
+   l'angle de teinte n'est que du bruit et produirait un ordre incohérent.
+   Blancs, gris et noirs ont une médiane sous 0,02 et une teinte étalée sur
+   presque tout le cercle — preuve qu'elle n'y signifie rien ; les beiges, eux,
+   restent groupés sur une soixantaine de degrés et gardent un vrai dégradé. */
+const FAMILLES_NEUTRES=new Set(BIBLIO.filter(f=>{
+  const cs=TOUTES.filter(c=>c.familleCle===f.cle).map(c=>c.lch.c).sort((a,b)=>a-b);
+  return cs.length&&cs[Math.floor(cs.length/2)]<.02;
+}).map(f=>f.cle));
+
+function trier(liste){
+  if(triActif==='defaut')return liste;
+  if(triActif==='aleatoire')return melanger(liste,graineTri);
+  const a=[...liste];
+  if(triActif==='clarte')return a.sort((x,y)=>y.lch.l-x.lch.l);      // du plus clair au plus sombre
+  if(triActif==='saturation')return a.sort((x,y)=>y.lch.c-x.lch.c);  // du plus vif au plus terne
+  if(triActif==='teinte'){
+    // trier(...) reçoit toujours une seule famille à la fois
+    const cle=liste[0]&&liste[0].familleCle;
+    if(FAMILLES_NEUTRES.has(cle))return a.sort((x,y)=>y.lch.l-x.lch.l);
+    return a.sort((x,y)=>ecartTeinte(x)-ecartTeinte(y));
+  }
+  return a;
+}
+
 function filtresActifs(){
   return !!(filtreEtat.rendu||filtreEtat.lMin>0||filtreEtat.lMax<100
     ||filtreEtat.cMin>0||filtreEtat.cMax<100);
@@ -1352,7 +1411,7 @@ function vueAccueil(filtre=''){
     if(trouve.length){
       // regroupées par famille (et non en une seule grille) pour que les teintes
       // ne se mélangent jamais visuellement d'une ligne à l'autre
-      const parFamille=BIBLIO.map(fam=>({fam,items:trouve.filter(c=>c.familleCle===fam.cle)}))
+      const parFamille=BIBLIO.map(fam=>({fam,items:trier(trouve.filter(c=>c.familleCle===fam.cle))}))
         .filter(x=>x.items.length);
       corps=`<section class="famille"><div class="entete-famille"><h2>${trouve.length} résultat${trouve.length>1?'s':''}</h2>
         <em>${desc.join(' · ')}</em></div></section>` +
@@ -1366,7 +1425,7 @@ function vueAccueil(filtre=''){
     }
   } else {
     corps=BIBLIO.map(fam=>{
-      const items=TOUTES.filter(c=>c.familleCle===fam.cle);
+      const items=trier(TOUTES.filter(c=>c.familleCle===fam.cle));
       return `<section class="famille" id="fam-${fam.cle}">
         <div class="entete-famille"><h2>${fam.nom}</h2><em>${fam.intro}</em></div>
         <div class="grille">${items.map(chip).join('')}</div>
@@ -1803,6 +1862,25 @@ filtreResetBtn.addEventListener('click',()=>{
   filtreRenduEl.value='';filtreLminEl.value=0;filtreLmaxEl.value=100;
   filtreCminEl.value=0;filtreCmaxEl.value=100;
   majFiltres();
+});
+
+/* ---------- sélecteur de tri ---------- */
+const triEl=document.getElementById('tri');
+const triRejouerBtn=document.getElementById('tri-rejouer');
+function rendreSiListe(){
+  if(location.hash.startsWith('#/couleur/')||location.hash.startsWith('#/comparer/'))return;
+  vueAccueil(champ.value);
+}
+triEl.addEventListener('change',()=>{
+  triActif=triEl.value;
+  if(triActif==='aleatoire')graineTri=Math.floor(Math.random()*1e9);
+  triRejouerBtn.hidden=triActif!=='aleatoire';
+  rendreSiListe();
+});
+triRejouerBtn.addEventListener('click',()=>{
+  graineTri=Math.floor(Math.random()*1e9);
+  rendreSiListe();
+  montrer('Nouveau tirage aléatoire');
 });
 
 /* ---------- historique de navigation ---------- */
