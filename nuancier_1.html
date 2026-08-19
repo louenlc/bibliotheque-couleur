@@ -143,6 +143,61 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
 .filtre-reset{font-size:11.5px;color:var(--calage);text-decoration:underline;align-self:flex-start}
 .filtre-reset:hover{color:var(--encre)}
 
+/* en mode palette, les réglages propres à la bibliothèque n'ont plus d'objet */
+.mode-palette .outil-biblio{display:none}
+.mode-palette .scene{padding-bottom:0}
+
+/* ---------- navigation entre modes ---------- */
+.modes{display:flex;flex-direction:column;gap:1px}
+.modes a{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:2px;font-size:13.5px}
+.modes a:hover{background:var(--papier-2)}
+.modes a.actif{background:var(--encre);color:var(--papier)}
+.modes a i{width:13px;height:13px;flex:none;border:1.5px solid currentColor;border-radius:2px}
+.modes a.mode-pal i{border:none;background:linear-gradient(90deg,#E63946 33%,#457B9D 33% 66%,#F1FAEE 66%)}
+
+/* ---------- générateur de palettes ---------- */
+.pal{display:flex;flex-direction:column;height:100vh}
+.pal-barre{display:flex;align-items:center;gap:18px;padding:14px 22px;border-bottom:1px solid var(--trait);
+  flex:none;flex-wrap:wrap;background:var(--papier)}
+.pal-titre{font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:-.02em}
+.pal-titre span{display:block;font-family:var(--texte);font-weight:400;font-size:11.5px;color:var(--calage);
+  letter-spacing:0;margin-top:2px}
+.pal-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.pal-btn{font-family:var(--mono);font-size:11.5px;padding:8px 13px;border:1px solid var(--trait);
+  border-radius:2px;background:#fff;display:inline-flex;align-items:center;gap:7px}
+.pal-btn:hover:not(:disabled){background:var(--papier-2)}
+.pal-btn:disabled{opacity:.35;cursor:not-allowed}
+.pal-btn.principal{background:var(--encre);color:var(--papier);border-color:var(--encre)}
+.pal-btn.principal:hover{opacity:.9;background:var(--encre)}
+.pal-btn kbd{background:rgba(255,255,255,.16);border-color:transparent;color:inherit}
+
+.pal-bandes{flex:1;display:flex;min-height:0}
+.pal-bande{flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:22px 16px 26px;min-width:0;transition:flex-grow .25s}
+.pal-outils{position:absolute;top:16px;left:0;right:0;display:flex;justify-content:center;gap:6px;
+  opacity:0;transition:opacity .15s}
+.pal-bande:hover .pal-outils,.pal-bande:focus-within .pal-outils{opacity:1}
+.pal-outil{width:31px;height:31px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:13px;line-height:1;background:rgba(255,255,255,.22);color:inherit}
+.pal-outil:hover{background:rgba(255,255,255,.4)}
+.pal-outil.verrouille{opacity:1}
+.pal-bande.est-verrouille .pal-outils{opacity:1}
+.pal-nom{font-size:14px;font-weight:600;line-height:1.25;margin-top:7px;
+  overflow-wrap:anywhere;text-decoration:none}
+.pal-nom:hover{text-decoration:underline}
+.pal-hex{font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:.04em;text-align:left;
+  display:block;padding:0}
+.pal-usage{font-size:11.5px;opacity:.72;margin-top:7px;line-height:1.4;max-width:26ch}
+.pal-alerte{font-size:10.5px;opacity:.8;margin-top:8px;font-family:var(--mono)}
+.pal-aide{padding:11px 22px;border-top:1px solid var(--trait);font-size:12px;color:var(--calage);flex:none}
+
+@media (max-width:820px){
+  .pal{height:auto;min-height:100vh}
+  .pal-bandes{flex-direction:column}
+  .pal-bande{min-height:118px;padding:16px 18px}
+  .pal-outils{top:12px;right:12px;left:auto;justify-content:flex-end;opacity:1}
+}
+
 /* ---------- plateau de comparaison ---------- */
 #tray{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;
   border:1px solid var(--trait);border-radius:4px;padding:10px 14px;display:flex;align-items:center;
@@ -294,10 +349,14 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
 <div class="appli">
   <nav class="rail">
     <div class="marque">Nuancier<span>Bibliothèque de couleurs</span></div>
-    <div class="recherche">
+    <nav class="modes" aria-label="Outils">
+      <a href="#/" id="mode-biblio"><i></i>Bibliothèque</a>
+      <a href="#/palette" id="mode-palette" class="mode-pal"><i></i>Générateur de palettes</a>
+    </nav>
+    <div class="recherche outil-biblio">
       <input id="q" type="search" placeholder="Nom ou code hex…" autocomplete="off" aria-label="Rechercher une couleur">
     </div>
-    <div class="agencement" role="group" aria-label="Agencement de la grille">
+    <div class="agencement outil-biblio" role="group" aria-label="Agencement de la grille">
       <span class="agencement-label">Affichage</span>
       <div class="agencement-boutons" id="agencement-boutons">
         <button data-cols="3">3</button>
@@ -307,7 +366,7 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
         <button data-cols="bento">Bento</button>
       </div>
     </div>
-    <div class="tri" role="group" aria-label="Ordre d'affichage">
+    <div class="tri outil-biblio" role="group" aria-label="Ordre d'affichage">
       <span class="agencement-label">Trier</span>
       <select id="tri" aria-label="Trier les nuances">
         <option value="defaut">Ordre du nuancier</option>
@@ -318,7 +377,7 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
       </select>
       <button type="button" id="tri-rejouer" class="filtre-reset" hidden>↻ Nouveau tirage</button>
     </div>
-    <div class="filtres" role="group" aria-label="Filtres avancés">
+    <div class="filtres outil-biblio" role="group" aria-label="Filtres avancés">
       <span class="agencement-label">Filtres</span>
       <select id="filtre-rendu" aria-label="Filtrer par rendu à l'impression">
         <option value="">Tous les rendus</option>
@@ -338,7 +397,7 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--trait);border-
       </div>
       <button type="button" id="filtre-reset" class="filtre-reset">Réinitialiser les filtres</button>
     </div>
-    <ul class="familles" id="nav-familles"></ul>
+    <ul class="familles outil-biblio" id="nav-familles"></ul>
     <footer>
       <kbd>/</kbd> pour chercher · <kbd>Échap</kbd> pour revenir<br><br>
       Cliquez sur n'importe quelle valeur pour la copier.
@@ -1594,6 +1653,154 @@ function vueFiche(sl){
 }
 
 /* ---------- comparateur ---------- */
+/* ============================================================
+   GÉNÉRATEUR DE PALETTES
+   Les couleurs ne sont pas tirées au hasard dans l'espace sRGB : elles sont
+   choisies dans la bibliothèque, au plus près d'une cible calculée selon un
+   schéma d'harmonie. Chaque case porte donc un vrai nom, une fiche, et son
+   verdict d'impression.
+   ============================================================ */
+const SCHEMAS=[
+  {nom:'Monochrome',ecarts:[0,0,0,0,0]},
+  {nom:'Analogues',ecarts:[-32,-16,0,16,32]},
+  {nom:'Complémentaires',ecarts:[0,0,180,180,0]},
+  {nom:'Complémentaires divisées',ecarts:[0,150,210,0,150]},
+  {nom:'Triade',ecarts:[0,120,240,0,120]},
+  {nom:'Tétrade',ecarts:[0,60,180,240,0]},
+  {nom:'Carré',ecarts:[0,90,180,270,0]},
+  {nom:'Dominante + accent',ecarts:[0,0,0,175,0]}
+];
+
+const etatPalette={cases:[],schema:SCHEMAS[1].nom};
+
+/* cible → nuance réelle : on cherche la plus proche dans la bibliothèque,
+   puis on tire au sort parmi les meilleures pour varier d'une génération à l'autre */
+function nuanceLaPlusProche(cible,exclus,varier=true){
+  const poidsTeinte=Math.min(1,cible.c/.11); // à faible chroma, la teinte ne discrimine plus
+  const notes=[];
+  for(const c of TOUTES){
+    if(exclus.has(c.hex))continue;
+    let dh=Math.abs(c.lch.h-cible.h);if(dh>180)dh=360-dh;
+    notes.push({c,d:Math.hypot((c.lch.l-cible.l)*1.75,(c.lch.c-cible.c)*2.1,(dh/180)*1.15*poidsTeinte)});
+  }
+  if(!notes.length)return null;
+  notes.sort((a,b)=>a.d-b.d);
+  if(!varier)return notes[0].c;              // rattachement exact : pas de tirage
+  const lot=notes.slice(0,Math.min(7,notes.length));
+  return lot[Math.floor(Math.random()*lot.length)].c;
+}
+
+function genererPalette(){
+  const cases=etatPalette.cases;
+  const n=cases.length;
+  const verrouillees=cases.filter(x=>x.verrou&&x.couleur);
+  // toutes verrouillées : rien à régénérer
+  if(verrouillees.length===n)return false;
+
+  // teinte de référence : celle d'une case verrouillée si possible, sinon au hasard
+  const ancre=verrouillees.find(x=>x.couleur.lch.c>.04);
+  const teinteBase=ancre?ancre.couleur.lch.h:Math.random()*360;
+  const schema=SCHEMAS[Math.floor(Math.random()*SCHEMAS.length)];
+  etatPalette.schema=schema.nom;
+
+  // échelle de clarté : une palette lisible a besoin d'un vrai écart clair/sombre
+  const haut=.90-Math.random()*.08, bas=.24+Math.random()*.10;
+  const exclus=new Set(cases.filter(x=>x.couleur).map(x=>x.couleur.hex));
+
+  cases.forEach((cse,i)=>{
+    if(cse.verrou&&cse.couleur)return;
+    if(cse.couleur)exclus.delete(cse.couleur.hex);
+    const t=n===1?.5:i/(n-1);
+    const lCible=haut-(haut-bas)*t+(Math.random()-.5)*.06;
+    const ecart=schema.ecarts[i%schema.ecarts.length];
+    const hCible=((teinteBase+ecart+(Math.random()-.5)*10)%360+360)%360;
+    // une case sur cinq environ vire au neutre : c'est ce qui rend une palette utilisable
+    const neutre=Math.random()<.22;
+    const cCible=neutre?.012+Math.random()*.03:.06+Math.random()*.16;
+    const trouvee=nuanceLaPlusProche({l:clamp(lCible,.08,.98),c:cCible,h:hCible},exclus);
+    if(trouvee){cse.couleur=trouvee;exclus.add(trouvee.hex)}
+  });
+  majUrlPalette();
+  return true;
+}
+
+function majUrlPalette(){
+  const codes=etatPalette.cases.filter(x=>x.couleur).map(x=>x.couleur.hex.replace('#',''));
+  if(codes.length)history.replaceState(null,'','#/palette/'+codes.join('-'));
+}
+
+function initPalette(param){
+  const codes=(param||'').split('-')
+    .map(s=>s.trim().toUpperCase()).filter(s=>/^[0-9A-F]{6}$/.test(s));
+  if(codes.length>=2){
+    etatPalette.cases=codes.slice(0,8).map(code=>{
+      const hex='#'+code;
+      let couleur=TOUTES.find(c=>c.hex.toUpperCase()===hex);
+      if(!couleur){
+        // code absent de la bibliothèque (URL modifiée à la main, palette venue d'ailleurs) :
+        // on l'accroche à la nuance la plus proche plutôt que de le perdre en silence
+        const rgb=hexToRgb(hex),lch=rgbToOklch(rgb.r,rgb.g,rgb.b);
+        couleur=nuanceLaPlusProche(lch,new Set(),false);
+      }
+      return{couleur,verrou:false};
+    }).filter(x=>x.couleur);
+  }
+  if(etatPalette.cases.length<2){
+    etatPalette.cases=Array.from({length:5},()=>({couleur:null,verrou:false}));
+    genererPalette();
+  } else {
+    majUrlPalette();
+  }
+}
+
+function vuePalette(){
+  document.title='Générateur de palettes — Nuancier';
+  document.documentElement.style.setProperty('--accent','#14161B');
+  const cases=etatPalette.cases;
+  const nbVerrous=cases.filter(x=>x.verrou).length;
+
+  scene.innerHTML=`
+  <div class="pal">
+    <div class="pal-barre">
+      <div class="pal-titre">Générateur de palettes
+        <span>${cases.length} couleurs · schéma : ${etatPalette.schema}${nbVerrous?` · ${nbVerrous} verrouillée${nbVerrous>1?'s':''}`:''}</span>
+      </div>
+      <div class="pal-actions">
+        <button type="button" class="pal-btn" data-pal="ajouter" ${cases.length>=8?'disabled':''}>+ Couleur</button>
+        <button type="button" class="pal-btn" data-pal="copier">Copier les codes</button>
+        <button type="button" class="pal-btn" data-pal="css">Copier en CSS</button>
+        <button type="button" class="pal-btn principal" data-pal="generer" ${nbVerrous===cases.length?'disabled':''}>
+          Générer <kbd>Espace</kbd></button>
+      </div>
+    </div>
+    <div class="pal-bandes">
+      ${cases.map((cse,i)=>{
+        const c=cse.couleur;
+        if(!c)return '';
+        const ink=c.ink;
+        const horsGamut=c.impression.ton==='bad';
+        return `<div class="pal-bande ${cse.verrou?'est-verrouille':''}" style="background:${c.hex};color:${ink}">
+          <div class="pal-outils">
+            <button type="button" class="pal-outil ${cse.verrou?'verrouille':''}" data-pal="verrou" data-i="${i}"
+              aria-pressed="${cse.verrou}" title="${cse.verrou?'Déverrouiller':'Verrouiller'}">${cse.verrou?'🔒':'🔓'}</button>
+            <button type="button" class="pal-outil" data-pal="retirer" data-i="${i}"
+              title="Retirer" ${cases.length<=2?'disabled style="opacity:.3"':''}>×</button>
+          </div>
+          <button type="button" class="pal-hex" data-copie="${c.hex}" style="color:${ink}">${c.hex.replace('#','')}</button>
+          <a class="pal-nom" href="#/couleur/${c.slug}" style="color:${ink}">${c.nom}</a>
+          <div class="pal-usage">${c.usage}</div>
+          ${horsGamut?`<div class="pal-alerte">⚠ hors gamut CMJN</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="pal-aide">
+      <kbd>Espace</kbd> pour régénérer · cliquez le code pour le copier · le cadenas fige une couleur ·
+      le nom ouvre la fiche complète
+    </div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
 function vueComparateur(param){
   const hexes=[...new Set((param||'').split(',').map(h=>h.trim().toUpperCase()).filter(Boolean))].slice(0,3);
   const items=hexes.map(h=>TOUTES.find(x=>x.hex.toUpperCase()===h)).filter(Boolean);
@@ -1891,13 +2098,26 @@ function precedent(){
   location.hash=cible;
 }
 
+const enModePalette=()=>(location.hash||'').startsWith('#/palette');
+
 function router(){
   const h=location.hash||'#/';
   if(pileHistorique[pileHistorique.length-1]!==h){
     pileHistorique.push(h);
     if(pileHistorique.length>50)pileHistorique.shift();
   }
-  if(h.startsWith('#/couleur/')){vueFiche(h.replace('#/couleur/',''));railFamilles()}
+  const palette=h.startsWith('#/palette');
+  document.body.classList.toggle('mode-palette',palette);
+  document.getElementById('mode-biblio').classList.toggle('actif',!palette);
+  document.getElementById('mode-palette').classList.toggle('actif',palette);
+
+  if(palette){
+    // n'initialise qu'à l'arrivée : les régénérations passent par replaceState
+    if(!etatPalette.cases.length||h.startsWith('#/palette/'))
+      initPalette(h.replace('#/palette/','').replace('#/palette',''));
+    vuePalette();
+  }
+  else if(h.startsWith('#/couleur/')){vueFiche(h.replace('#/couleur/',''));railFamilles()}
   else if(h.startsWith('#/comparer/')){vueComparateur(decodeURIComponent(h.replace('#/comparer/','')));railFamilles()}
   else{vueAccueil(champ.value);railFamilles()}
 }
@@ -1908,7 +2128,49 @@ champ.addEventListener('input',()=>{
   vueAccueil(champ.value);
 });
 
+/* ---------- actions du générateur de palettes ---------- */
+function actionPalette(action,i){
+  if(action==='generer'){
+    if(!genererPalette())montrer('Toutes les couleurs sont verrouillées');
+    else vuePalette();
+    return;
+  }
+  if(action==='verrou'){
+    etatPalette.cases[i].verrou=!etatPalette.cases[i].verrou;
+    vuePalette();return;
+  }
+  if(action==='retirer'){
+    if(etatPalette.cases.length<=2){montrer('Une palette garde au moins 2 couleurs');return}
+    etatPalette.cases.splice(i,1);
+    majUrlPalette();vuePalette();return;
+  }
+  if(action==='ajouter'){
+    if(etatPalette.cases.length>=8){montrer('Palette limitée à 8 couleurs');return}
+    // la nouvelle case se remplit sans toucher aux autres : on la verrouille le temps du tirage
+    const anciens=etatPalette.cases.map(x=>x.verrou);
+    etatPalette.cases.forEach(x=>{if(x.couleur)x.verrou=true});
+    etatPalette.cases.push({couleur:null,verrou:false});
+    genererPalette();
+    etatPalette.cases.forEach((x,k)=>{if(k<anciens.length)x.verrou=anciens[k]});
+    majUrlPalette();vuePalette();return;
+  }
+  if(action==='copier'){
+    copier(etatPalette.cases.filter(x=>x.couleur).map(x=>x.couleur.hex).join(', '));return;
+  }
+  if(action==='css'){
+    const lignes=etatPalette.cases.filter(x=>x.couleur)
+      .map((x,k)=>`  --couleur-${k+1}: ${x.couleur.hex}; /* ${x.couleur.nom} */`);
+    copier(':root{\n'+lignes.join('\n')+'\n}');return;
+  }
+}
+
 document.addEventListener('click',e=>{
+  const pal=e.target.closest('[data-pal]');
+  if(pal&&!pal.disabled){
+    e.preventDefault();
+    actionPalette(pal.dataset.pal,Number(pal.dataset.i));
+    return;
+  }
   if(e.target.id==='tray-vider'){viderComparaison();return}
   if(e.target.id==='tray-comparer'){
     if(compareSelection.length>=2)location.hash='#/comparer/'+compareSelection.join(',');
@@ -1923,6 +2185,15 @@ document.addEventListener('click',e=>{
 });
 
 document.addEventListener('keydown',e=>{
+  // barre espace : régénère la palette, sauf si l'on est dans un champ ou sur un bouton
+  const barreEspace=e.code==='Space'||e.key===' '||e.key==='Spacebar';
+  if(barreEspace&&enModePalette()){
+    const cible=e.target;
+    const saisie=cible instanceof HTMLElement&&
+      (cible.tagName==='INPUT'||cible.tagName==='TEXTAREA'||cible.tagName==='SELECT'
+       ||cible.tagName==='BUTTON'||cible.tagName==='A'||cible.isContentEditable);
+    if(!saisie){e.preventDefault();actionPalette('generer');return}
+  }
   if(e.key==='/'&&document.activeElement!==champ){e.preventDefault();champ.focus();champ.select()}
   if(e.key==='Escape'){
     if(document.activeElement===champ&&champ.value){champ.value='';vueAccueil()}
